@@ -15,6 +15,7 @@ public:
   void execute_move(move_type move);
   std::vector<int> get_game_status();
   void display() const;
+  bool check_line(int x, int y, int x_mul, int y_mul);
 
   inline unsigned int get_action_size() const { return this->n * this->n; }
   inline board_type get_board() const { return this->board; }

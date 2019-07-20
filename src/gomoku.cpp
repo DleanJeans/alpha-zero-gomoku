@@ -40,7 +40,7 @@ void Gomoku::execute_move(move_type move) {
   auto i = move / this->n;
   auto j = move % this->n;
 
-  if (!this->board[i][j] == 0) {
+  if (this->board[i][j] != 0) {
     throw std::runtime_error("execute_move borad[i][j] != 0.");
   }
 
@@ -57,49 +57,24 @@ std::vector<int> Gomoku::get_game_status() {
 
   for (unsigned int i = 0; i < n; i++) {
     for (unsigned int j = 0; j < n; j++) {
-      if (this->board[i][j] == 0) {
+      if (this->board[i][j] == 0)
         continue;
-      }
 
-      if (j <= n - n_in_row) {
-        auto sum = 0;
-        for (unsigned int k = 0; k < n_in_row; k++) {
-          sum += this->board[i][j + k];
-        }
-        if (abs(sum) == n_in_row) {
+      if (j <= n - n_in_row)
+        if (check_line(i, j, 0, 1))
           return {1, this->board[i][j]};
-        }
-      }
 
-      if (i <= n - n_in_row) {
-        auto sum = 0;
-        for (unsigned int k = 0; k < n_in_row; k++) {
-          sum += this->board[i + k][j];
-        }
-        if (abs(sum) == n_in_row) {
+      if (i <= n - n_in_row)
+        if (check_line(i, j, 1, 0))
           return {1, this->board[i][j]};
-        }
-      }
 
-      if (i <= n - n_in_row && j <= n - n_in_row) {
-        auto sum = 0;
-        for (unsigned int k = 0; k < n_in_row; k++) {
-          sum += this->board[i + k][j + k];
-        }
-        if (abs(sum) == n_in_row) {
+      if (i <= n - n_in_row && j <= n - n_in_row)
+        if (check_line(i, j, 1, 1))
           return {1, this->board[i][j]};
-        }
-      }
 
-      if (i <= n - n_in_row && j >= n_in_row - 1) {
-        auto sum = 0;
-        for (unsigned int k = 0; k < n_in_row; k++) {
-          sum += this->board[i + k][j - k];
-        }
-        if (abs(sum) == n_in_row) {
+      if (i <= n - n_in_row && j >= n_in_row - 1)
+        if (check_line(i, j, 1, -1))
           return {1, this->board[i][j]};
-        }
-      }
     }
   }
 
@@ -110,12 +85,60 @@ std::vector<int> Gomoku::get_game_status() {
   }
 }
 
+bool Gomoku::check_line(int x, int y, int x_mul, int y_mul) {
+  int sum = 0;
+  int blocks = 0;
+  int root_piece = this->board[x][y];
+
+  int current_x = x;
+  int current_y = y;
+  int current_piece = root_piece;
+  int direction = -1;
+
+  do {
+    current_x += x_mul * direction;
+    current_y += y_mul * direction;
+    if (current_x < 0 || current_x >= n || current_y < 0 || current_y >= n)
+      break;
+    current_piece = this->board[current_x][current_y];
+
+    if (current_piece == -root_piece)
+      blocks += 1;
+  } while (current_piece == root_piece);
+
+  direction = 1;
+
+  do {
+    current_x += x_mul * direction;
+    current_y += y_mul * direction;
+    if (current_x < 0 || current_x >= n || current_y < 0 || current_y >= n)
+      break;
+    current_piece = this->board[current_x][current_y];
+
+    if (current_piece == root_piece)
+      sum += 1;
+    else if (current_piece == -root_piece)
+      blocks += 1;
+  } while (current_piece == root_piece);
+  
+  return abs(sum) == n_in_row && blocks < 2;
+}
+
 void Gomoku::display() const {
   auto n = this->board.size();
 
   for (unsigned int i = 0; i < n; i++) {
     for (unsigned int j = 0; j < n; j++) {
-      std::cout << this->board[i][j] << ", ";
+      auto s = "";
+      switch (this->board[i][j]) {
+        case 1: s = "x";
+        break;
+        case -1: s = "o";
+        break;
+        default: s = "_";
+        break;
+      }
+      std::cout << s << "|";
     }
     std::cout << std::endl;
   }
