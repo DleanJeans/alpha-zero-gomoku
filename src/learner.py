@@ -25,7 +25,7 @@ def tuple_2d_to_numpy_2d(tuple_2d):
     return np.array(res)
 
 
-class Leaner():
+class Learner():
     def __init__(self, config):
         # see config.py
         # gomoku
@@ -59,7 +59,7 @@ class Leaner():
         self.epochs = config['epochs']
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
-
+                                         
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
         t.start()
