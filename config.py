@@ -20,7 +20,7 @@ config = {
     'batch_size': 512,                          # batch size
 
     # train
-    'num_iters': 10000,                         # train iterations
+    'num_iters': 10,                         # train iterations
     'num_eps': 10,                              # self play times in per iter
     'num_train_threads': 10,                    # self play in parallel
     'num_explore': 5,                           # explore step in a game
@@ -28,11 +28,12 @@ config = {
     'dirichlet_alpha': 0.3,                     # action noise in self play games
     'update_threshold': 0.55,                   # update model threshold
     'num_contest': 10,                          # new/old model compare times
-    'check_freq': 20,                           # test model frequency
+    'check_freq': 2,                           # test model frequency
     'examples_buffer_max_len': 20,              # max length of examples buffer
 
     # test
-    'human_color': 1                            # human player's color
+    'human_color': 1,                            # human player's color
+    'output_board': True,
 }
 
 # action size
