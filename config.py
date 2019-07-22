@@ -32,7 +32,8 @@ config = {
     'examples_buffer_max_len': 20,              # max length of examples buffer
 
     # test
-    'human_color': 1                            # human player's color
+    'human_color': 1,                            # human player's color
+    'output_board': True,
 }
 
 # action size

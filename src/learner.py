@@ -14,7 +14,7 @@ sys.path.append('../build')
 from library import MCTS, Gomoku, NeuralNetwork
 
 from neural_network import NeuralNetWorkWrapper
-from gomoku_gui import GomokuGUI
+from gomoku_cmd import GomokuCMD
 
 def tuple_2d_to_numpy_2d(tuple_2d):
     # help function
@@ -31,7 +31,7 @@ class Learner():
         # gomoku
         self.n = config['n']
         self.n_in_row = config['n_in_row']
-        self.gomoku_gui = GomokuGUI(config['n'], config['human_color'])
+        self.gomoku_gui = GomokuCMD(config['n'], config['human_color'])
         self.action_size = config['action_size']
 
         # train
@@ -60,6 +60,7 @@ class Learner():
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
                                          
+        self.gomoku_gui.output_board = config['output_board']
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
         t.start()
