@@ -1,5 +1,6 @@
 from collections import deque
 from os import path, mkdir
+import os
 import threading
 import time
 import math
@@ -7,7 +8,9 @@ import numpy as np
 import pickle
 import concurrent.futures
 import random
+import shutil
 from functools import reduce
+from threading import Thread
 
 import sys
 sys.path.append('../build')
@@ -77,15 +80,28 @@ class Learner():
             self.nnet.save_model()
             self.nnet.save_model('models', "best_checkpoint")
 
-        for itr in range(1, self.num_iters + 1):
-            print("ITER :: {}".format(itr))
+        iter_txt_path = 'models/iteration.txt'
+        start_iter = 1
+        if path.exists(iter_txt_path):
+            with open(iter_txt_path, 'r') as file:
+                start_iter = int(file.read())
+
+
+        for i in range(start_iter, self.num_iters + 1):
+            print("ITER :: {}".format(i))
 
             # self play in parallel
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
+            
+            if i > start_iter and not upload_thread.is_alive():
+                print(f'Uploading models to Drive...\n{self.gomoku_gui.get_time()}\n')
+                upload_thread = Thread(target=self.upload_models)
+                upload_thread.start()
+
             itr_examples = []
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_train_threads) as executor:
-                futures = [executor.submit(self.self_play, 1 if itr % 2 else -1, libtorch, k == 1) for k in range(1, self.num_eps + 1)]
+                futures = [executor.submit(self.self_play, 1 if i % 2 else -1, libtorch, k == 1) for k in range(1, self.num_eps + 1)]
                 for k, f in enumerate(futures):
                     examples = f.result()
                     itr_examples += examples
@@ -128,6 +144,17 @@ class Learner():
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
+
+            with open('models/iteration.txt', 'w+') as file:
+                file.write(str(i+1))
+                
+    def upload_models(self):
+        drive_path = 'drive/My Drive/Colab Notebooks/alpha-zero-caro/'
+        shutil.make_archive(drive_path + 'models', 'zip', 'models')
+        shutil.copy2('models/iteration.txt', drive_path)
+        shutil.copy2('models/best.txt', drive_path)
+        print('Uploaded models to Drive!', self.gomoku_gui.get_time(), '\n')
+        sys.stdout.flush()
 
     def self_play(self, first_color, libtorch, show):
         """
