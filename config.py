@@ -33,7 +33,10 @@ config = {
 
     # test
     'human_color': 1,                            # human player's color
-    'output_board': True,
+
+    'drive_path': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
+    'iteration_path': 'models/iteration.txt',
+    'best_path': 'models/best.txt'
 }
 
 # action size

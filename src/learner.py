@@ -63,7 +63,10 @@ class Learner():
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
 
-        self.gomoku_gui.output_board = config['output_board']
+        self.drive_path = config['drive_path']
+        self.iteration_path = config['iteration_path']
+        self.best_path = config['best_path']
+
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
         t.start()
@@ -80,10 +83,9 @@ class Learner():
             self.nnet.save_model()
             self.nnet.save_model('models', "best_checkpoint")
         
-        iter_txt_path = 'models/iteration.txt'
         start_iter = 1
-        if path.exists(iter_txt_path):
-            with open(iter_txt_path, 'r') as file:
+        if path.exists(self.iteration_path):
+            with open(self.iteration_path, 'r') as file:
                 start_iter = int(file.read())
         
 
@@ -152,20 +154,22 @@ class Learner():
                 
                 text += '\n\n'
                 print(text)
-                    print('REJECTING NEW MODEL')
+                text = f'ITER :: {i}\n{text}'
+
+                with open(self.best_path, 'a+') as file:
+                    file.write(text)
 
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
             
-            with open('models/iteration.txt', 'w+') as file:
+            with open(self.iteration_path, 'w+') as file:
                 file.write(str(i+1))
                 
     def upload_models(self):
-        drive_path = 'drive/My Drive/Colab Notebooks/alpha-zero-caro/'
-        shutil.make_archive(drive_path + 'models', 'zip', 'models')
-        shutil.copy2('models/iteration.txt', drive_path)
-        shutil.copy2('models/best.txt', drive_path)
+        shutil.make_archive(self.drive_path + 'models', 'zip', 'models')
+        shutil.copy2(self.iteration_path, self.drive_path)
+        shutil.copy2(self.best_path, self.drive_path)
         print('Uploaded models to Drive!', self.gomoku_gui.get_time(), '\n')
         sys.stdout.flush()
 
@@ -336,6 +340,8 @@ class Learner():
         player_index = human_color if human_first else -human_color
 
         self.gomoku_gui.reset_status()
+        self.gomoku_gui.output_board = True
+        self.gomoku_gui.output_util = False
 
         while True:
             player = players[player_index + 1]
