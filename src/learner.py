@@ -48,7 +48,8 @@ class Learner():
         self.update_threshold = config['update_threshold']
         self.num_explore = config['num_explore']
 
-        self.examples_buffer = deque([], maxlen=config['examples_buffer_max_len'])
+        self.examples_buffer_len = config['examples_buffer_len']
+        self.examples_buffer = deque([], maxlen=self.examples_buffer_len[1])
 
         # mcts
         self.num_mcts_sims = config['num_mcts_sims']
@@ -66,15 +67,35 @@ class Learner():
         self.drive_path = config['drive_path']
         self.iteration_path = config['iteration_path']
         self.best_path = config['best_path']
+        
+        self.lr = config['lr']
+        self.lr_map = config['lr_map']
 
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
         t.start()
+    
+    def update_lr(self, i):
+        new_lr = self.lr
+        for upper in self.lr_map:
+            if i < upper:
+                break
+            new_lr = self.lr_map[upper]
+        if new_lr != self.lr:
+            self.lr = new_lr
+            print('New Learning Rate:', self.lr)
+
+    def update_examples_buffer_max_len(self, i):
+        examples_buffer_len = min(self.examples_buffer_len[0] + i // self.examples_buffer_len[2], self.examples_buffer_len[1]) # = max(start_len + i // change, max_len)
+
+        if examples_buffer_len != self.examples_buffer.maxlen:
+            self.examples_buffer = deque(self.examples_buffer, maxlen=examples_buffer_len)
+            print('New Examples Max Length:', self.examples_buffer.maxlen)
 
     def learn(self):
-        # train the model by self play
+        # train the model by self play        
 
-        if path.exists(path.join('models', 'checkpoint.example')):
+        if path.exists('models/checkpoint.example'):
             print("Loading checkpoint...")
             self.nnet.load_model()
             self.load_samples()
@@ -88,9 +109,14 @@ class Learner():
             with open(self.iteration_path, 'r') as file:
                 start_iter = int(file.read())
         
+        upload_thread = Thread(target=self.upload_models)
 
         for i in range(start_iter, self.num_iters + 1):
             # self play in parallel
+
+            self.update_lr(i)
+            self.update_examples_buffer_max_len(i)
+            
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
@@ -169,7 +195,8 @@ class Learner():
     def upload_models(self):
         shutil.make_archive(self.drive_path + 'models', 'zip', 'models')
         shutil.copy2(self.iteration_path, self.drive_path)
-        shutil.copy2(self.best_path, self.drive_path)
+        if path.exists(self.best_path):
+            shutil.copy2(self.best_path, self.drive_path)
         print('Uploaded models to Drive!', self.gomoku_gui.get_time(), '\n')
         sys.stdout.flush()
 
@@ -340,7 +367,6 @@ class Learner():
         player_index = human_color if human_first else -human_color
 
         self.gomoku_gui.reset_status()
-        self.gomoku_gui.output_board = True
         self.gomoku_gui.output_util = False
 
         while True:

@@ -1,6 +1,6 @@
 config = {
     # gomoku
-    'n': 15,                                    # board size
+    'n': 19,                                    # board size
     'n_in_row': 5,                              # n in row
 
     # mcts
@@ -12,7 +12,12 @@ config = {
 
     # neural_network
     'train_use_gpu' : True,                     # train neural network using cuda
-    'lr': 0.001,                                # learning rate
+    'lr': 1e-3,                                 # learning rate
+    'lr_map': {
+        0: 1e-2,
+        400: 1e-3,
+        600: 1e-4
+    },
     'l2': 0.0001,                               # L2
     'num_channels': 256,                        # convolution neural network channel size
     'num_layers' : 4,                           # residual layer number
@@ -29,7 +34,7 @@ config = {
     'update_threshold': 0.55,                   # update model threshold
     'num_contest': 10,                          # new/old model compare times
     'check_freq': 20,                           # test model frequency
-    'examples_buffer_max_len': 20,              # max length of examples buffer
+    'examples_buffer_len': (4, 10, 10),          # (start, max, +1 every n iter)
 
     # test
     'human_color': 1,                            # human player's color

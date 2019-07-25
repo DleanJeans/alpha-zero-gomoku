@@ -18,7 +18,6 @@ class GomokuCMD():
 
         self.reset_status()
 
-        self.output_board = False
         self.output_util = True
         self.timezone = 'Asia/Ho_Chi_Minh'
 
@@ -103,8 +102,6 @@ class GomokuCMD():
     def print_board(self):
         now = self.get_time()
         print(f'MOVE {self.k}: {now}')
-
-        if not self.output_board: return
 
         x_labels = '    ' + ' '.join(ascii_uppercase[0:self.n]) + '\n'
         
