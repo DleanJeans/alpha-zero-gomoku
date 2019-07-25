@@ -62,7 +62,7 @@ class Learner():
         self.epochs = config['epochs']
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
-                                         
+
         self.gomoku_gui.output_board = config['output_board']
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
@@ -72,24 +72,22 @@ class Learner():
         # train the model by self play
 
         if path.exists(path.join('models', 'checkpoint.example')):
-            print("loading checkpoint...")
+            print("Loading checkpoint...")
             self.nnet.load_model()
             self.load_samples()
         else:
             # save torchscript
             self.nnet.save_model()
             self.nnet.save_model('models', "best_checkpoint")
-
+        
         iter_txt_path = 'models/iteration.txt'
         start_iter = 1
         if path.exists(iter_txt_path):
             with open(iter_txt_path, 'r') as file:
                 start_iter = int(file.read())
-
+        
 
         for i in range(start_iter, self.num_iters + 1):
-            print("ITER :: {}".format(i))
-
             # self play in parallel
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
@@ -98,6 +96,8 @@ class Learner():
                 print(f'Uploading models to Drive...\n{self.gomoku_gui.get_time()}\n')
                 upload_thread = Thread(target=self.upload_models)
                 upload_thread.start()
+            
+            print('ITER ::', i)
 
             itr_examples = []
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_train_threads) as executor:
@@ -116,35 +116,48 @@ class Learner():
 
             # prepare train data
             self.examples_buffer.append(itr_examples)
+
+            print('Examples Size:', len(self.examples_buffer), 'iters')
+
             train_data = reduce(lambda a, b : a + b, self.examples_buffer)
             random.shuffle(train_data)
 
+            print('Train Data Size:', len(train_data))
+
             # train neural network
             epochs = self.epochs * (len(itr_examples) + self.batch_size - 1) // self.batch_size
+
+            print(f'Training {int(epochs)} epochs...')
+
             self.nnet.train(train_data, self.batch_size, int(epochs))
             self.nnet.save_model()
             self.save_samples()
 
             # compare performance
-            if itr % self.check_freq == 0:
+            if i % self.check_freq == 0:
+                print('Pitting aganst best model...')
                 libtorch_current = NeuralNetwork('./models/checkpoint.pt',
                                          self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
                 libtorch_best = NeuralNetwork('./models/best_checkpoint.pt',
                                               self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
 
                 one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest)
-                print("NEW/PREV WINS : %d / %d ; DRAWS : %d" % (one_won, two_won, draws))
+                text = "NEW/PREV WINS : %d / %d | DRAWS : %d\n" % (one_won, two_won, draws)
 
-                if one_won + two_won > 0 and float(one_won) / (one_won + two_won) > self.update_threshold:
-                    print('ACCEPTING NEW MODEL')
+                if one_won + two_won > 0 and float(one_won) / (one_won + two_won) >= self.update_threshold:
+                    text += 'ACCEPTING NEW MODEL'
                     self.nnet.save_model('models', "best_checkpoint")
                 else:
+                    text += 'REJECTING NEW MODEL'
+                
+                text += '\n\n'
+                print(text)
                     print('REJECTING NEW MODEL')
 
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
-
+            
             with open('models/iteration.txt', 'w+') as file:
                 file.write(str(i+1))
                 
@@ -361,7 +374,7 @@ class Learner():
 
         filepath = path.join(folder, filename)
         with open(filepath, 'rb') as f:
-            self.examples_buffer = pickle.load(f)
+            self.examples_buffer = deque(pickle.load(f), self.examples_buffer.maxlen)
 
     def save_samples(self, folder="models", filename="checkpoint.example"):
         """save self.examples_buffer

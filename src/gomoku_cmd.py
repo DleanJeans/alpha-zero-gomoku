@@ -5,6 +5,11 @@ from string import ascii_uppercase
 from datetime import datetime
 import pytz
 
+import psutil
+import humanize
+import os
+import GPUtil as GPU
+
 class GomokuCMD():
     def __init__(self, n, human_color=1):
         self.n = n
@@ -14,6 +19,7 @@ class GomokuCMD():
         self.reset_status()
 
         self.output_board = False
+        self.output_util = True
         self.timezone = 'Asia/Ho_Chi_Minh'
 
     def __del__(self):
@@ -31,7 +37,7 @@ class GomokuCMD():
         self.human_move = -1
 
         if has_board:
-            self._print_board()
+            self.print_board()
 
     def set_is_human(self, value=True):
         self.is_human = value
@@ -53,7 +59,8 @@ class GomokuCMD():
         self.number[x][y] = self.k
         
         self.last_move = (x, y)
-        self._print_board()
+        self.print_util()
+        self.print_board()
 
         self.k += 1
     
@@ -76,10 +83,24 @@ class GomokuCMD():
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
         assert self.board[x][y] == 0, 'Position Already Occupied!'
     
+    def print_util(self):
+        if not self.output_util: return
+
+        gpu = GPU.getGPUs()[0]
+        process = psutil.Process(os.getpid())
+        ram = psutil.virtual_memory()
+        ram_used = ram.total - ram.available
+        
+        print('Process size:', (humanize.naturalsize(process.memory_info().rss)))
+        print(f'CPU: {psutil.cpu_percent()}% | RAM Free:', humanize.naturalsize(ram.available),'| Used:', humanize.naturalsize(ram_used), '({0:.1f}%)'.format(ram.percent), '| Total:', humanize.naturalsize(ram.total))
+        print('GPU: {0:.1f}%'.format(gpu.load*100) ,'| RAM Free: {0:.1f} GB | Used: {1:.1f} GB ({2:.1f}%) | Total {3:.1f} GB'.format(gpu.memoryFree/1024, gpu.memoryUsed/1024, gpu.memoryUtil*100, gpu.memoryTotal/1024))
+        
+        print('')
+
     def get_time(self):
         return datetime.now(pytz.timezone(self.timezone)).strftime('%Y-%m-%d - %I:%M:%S %p')
 
-    def _print_board(self):
+    def print_board(self):
         now = self.get_time()
         print(f'MOVE {self.k}: {now}')
 
