@@ -1,7 +1,7 @@
 #include <math.h>
 #include <iostream>
 
-#include <gomoku.h>
+#include "gomoku.h"
 
 Gomoku::Gomoku(unsigned int n, unsigned int n_in_row, int first_color)
     : n(n), n_in_row(n_in_row), cur_color(first_color), last_move(-1) {
@@ -121,16 +121,20 @@ bool Gomoku::check_line(int x, int y, int x_mul, int y_mul) {
       blocks += 1;
   } while (current_piece == root_piece);
   
-  return abs(sum) == n_in_row && blocks < 2;
+  return abs(sum) >= n_in_row && blocks < 2;
 }
 
 void Gomoku::display() const {
   auto n = this->board.size();
+  for (unsigned int i = 0; i < n; i++)
+    std::cout << " _";
+  std::cout << std::endl;
 
-  for (unsigned int i = 0; i < n; i++) {
-    for (unsigned int j = 0; j < n; j++) {
+  for (unsigned int x = 0; x < n; x++) {
+    std::cout << "|";
+    for (unsigned int y = 0; y < n; y++) {
       auto s = "";
-      switch (this->board[i][j]) {
+      switch (this->board[x][y]) {
         case 1: s = "x";
         break;
         case -1: s = "o";
