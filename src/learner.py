@@ -70,6 +70,7 @@ class Learner():
         
         self.lr = config['lr']
         self.lr_map = config['lr_map']
+        self.gomoku_gui.use_gpu = config['train_use_gpu']
 
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)

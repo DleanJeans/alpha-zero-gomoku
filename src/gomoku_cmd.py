@@ -20,6 +20,7 @@ class GomokuCMD():
 
         self.output_util = True
         self.timezone = 'Asia/Ho_Chi_Minh'
+        self.use_gpu = True
 
         self.iteration = -1
 
@@ -87,15 +88,17 @@ class GomokuCMD():
     
     def print_util(self):
         if not self.output_util: return
-
-        gpu = GPU.getGPUs()[0]
+        
+        if self.use_gpu:
+            gpu = GPU.getGPUs()[0]
         process = psutil.Process(os.getpid())
         ram = psutil.virtual_memory()
         ram_used = ram.total - ram.available
         
         print('Process size:', (humanize.naturalsize(process.memory_info().rss)))
         print(f'CPU: {psutil.cpu_percent()}% | RAM Free:', humanize.naturalsize(ram.available),'| Used:', humanize.naturalsize(ram_used), '({0:.1f}%)'.format(ram.percent), '| Total:', humanize.naturalsize(ram.total))
-        print('GPU: {0:.1f}%'.format(gpu.load*100) ,'| RAM Free: {0:.1f} GB | Used: {1:.1f} GB ({2:.1f}%) | Total {3:.1f} GB'.format(gpu.memoryFree/1024, gpu.memoryUsed/1024, gpu.memoryUtil*100, gpu.memoryTotal/1024))
+        if self.use_gpu:
+            print('GPU: {0:.1f}%'.format(gpu.load*100) ,'| RAM Free: {0:.1f} GB | Used: {1:.1f} GB ({2:.1f}%) | Total {3:.1f} GB'.format(gpu.memoryFree/1024, gpu.memoryUsed/1024, gpu.memoryUtil*100, gpu.memoryTotal/1024))
         
         print('')
 
