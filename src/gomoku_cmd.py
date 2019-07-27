@@ -84,7 +84,7 @@ class GomokuCMD():
         self.human_move = y * self.n + x
 
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
-        assert self.board[x][y] == 0, 'Position Already Occupied!'
+        # assert self.board[x][y] == 0, 'Position Already Occupied!'
     
     def print_util(self):
         if not self.output_util: return
