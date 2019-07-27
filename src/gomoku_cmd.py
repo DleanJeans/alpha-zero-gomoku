@@ -21,6 +21,8 @@ class GomokuCMD():
         self.output_util = True
         self.timezone = 'Asia/Ho_Chi_Minh'
 
+        self.iteration = -1
+
     def __del__(self):
         # close window
         self.is_running = False
@@ -30,13 +32,14 @@ class GomokuCMD():
 
         self.board = np.zeros((self.n, self.n), dtype=int)
         self.number = np.zeros((self.n, self.n), dtype=int)
-        self.k = 1 # step number
 
         self.is_human = False
         self.human_move = -1
 
+        self.k = 0
         if has_board:
             self.print_board()
+        self.k = 1
 
     def set_is_human(self, value=True):
         self.is_human = value
@@ -101,6 +104,9 @@ class GomokuCMD():
 
     def print_board(self):
         now = self.get_time()
+
+        if self.iteration > -1:
+            print(f'ITER {self.iteration} - ', end='')
         print(f'MOVE {self.k}: {now}')
 
         x_labels = '    ' + ' '.join(ascii_uppercase[0:self.n]) + '\n'

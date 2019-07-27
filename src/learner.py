@@ -125,6 +125,7 @@ class Learner():
                 upload_thread = Thread(target=self.upload_models)
                 upload_thread.start()
             
+            self.gomoku_gui.iteration = i
             print('ITER ::', i)
 
             itr_examples = []
