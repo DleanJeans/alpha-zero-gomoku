@@ -87,11 +87,13 @@ class Learner():
             print('New Learning Rate:', self.lr)
 
     def update_examples_buffer_max_len(self, i):
-        examples_buffer_len = min(self.examples_buffer_len[0] + i // self.examples_buffer_len[2], self.examples_buffer_len[1]) # = max(start_len + i // change, max_len)
+        start, end, start_change, change_speed = self.examples_buffer_len
+        change = max(0, (i - start_change) // change_speed)
+        new_max_len = min(start + change, end)
 
-        if examples_buffer_len != self.examples_buffer.maxlen:
-            self.examples_buffer = deque(self.examples_buffer, maxlen=examples_buffer_len)
-            print('New Examples Max Length:', self.examples_buffer.maxlen)
+        if new_max_len != self.examples_buffer.maxlen:
+            self.examples_buffer = deque(self.examples_buffer, maxlen=new_max_len)
+            print('New Examples Max Length:', new_max_len)
 
     def learn(self):
         # train the model by self play        
