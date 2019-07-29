@@ -263,9 +263,11 @@ class Learner():
 
             if show:
                 self.gomoku_gui.execute_move(cur_player, action)
+                self.gomoku_gui.print_probs(prob)
             gomoku.execute_move(action)
             player1.update_with_move(action)
             player2.update_with_move(action)
+            
 
             # next player
             player_index = -player_index

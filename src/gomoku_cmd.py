@@ -4,10 +4,10 @@ import numpy as np
 from string import ascii_uppercase
 from datetime import datetime
 import pytz
+import sys
 
 import psutil
 import humanize
-import os
 import GPUtil as GPU
 
 class GomokuCMD():
@@ -137,3 +137,23 @@ class GomokuCMD():
         if (x, y) == self.last_move:
             piece = piece.upper()
         return piece
+
+    def print_probs(self, probs):
+        probs = ['.' + str(round(p, 4)).split('.')[1] for p in probs]
+        probs = np.array(probs).reshape(self.n, self.n)
+
+        top_line = ' ' + '_' * 6 * self.n + '\n'
+        board = top_line
+        top_pad = '|' + ' ' * 5
+        bottom_pad = '|' + '_' * 5
+
+        for y in range(self.n):
+            board += top_pad * self.n + '|\n'
+            for x in range(self.n):
+                p = probs[x][y].ljust(5)
+                board += f'|{p}'
+            l = '|' + '_' * 6
+            board += '|\n'
+            board += bottom_pad * self.n + '|\n'
+        
+        print(board)
