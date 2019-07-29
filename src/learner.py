@@ -120,7 +120,7 @@ class Learner():
             self.update_lr(i)
             self.update_examples_buffer_max_len(i)
             
-            libtorch = NeuralNetwork('./models/checkpoint.pt',
+            libtorch = NeuralNetwork('./models/best_checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
             if i > start_iter and not upload_thread.is_alive():
