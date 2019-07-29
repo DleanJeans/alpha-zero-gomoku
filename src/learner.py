@@ -141,7 +141,7 @@ class Learner():
                     # decrease libtorch batch size
                     remain = min(len(futures) - (k + 1), self.num_train_threads)
                     libtorch.set_batch_size(max(remain * self.num_mcts_threads, 1))
-                    print("EPS: {}, EXAMPLES: {}".format(k + 1, len(examples)))
+                    print(f'EPS: {k+1} - EXAMPLES: {len(examples)} ({self.gomoku_gui.get_time()})')
 
             # release gpu memory
             del libtorch
