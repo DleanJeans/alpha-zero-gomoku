@@ -62,7 +62,6 @@ class GomokuCMD():
         self.number[x][y] = self.k
         
         self.last_move = (x, y)
-        self.print_util()
         self.print_board()
 
         self.k += 1
