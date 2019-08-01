@@ -174,7 +174,7 @@ class Learner():
                                               self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
 
                 one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest)
-                text = "NEW/PREV WINS : %d / %d | DRAWS : %d\n" % (one_won, two_won, draws)
+                text = f'\nNEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws}\n'
 
                 if one_won + two_won > 0 and float(one_won) / (one_won + two_won) >= self.update_threshold:
                     text += 'ACCEPTING NEW MODEL'
@@ -286,14 +286,19 @@ class Learner():
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_train_threads) as executor:
             futures = [executor.submit(\
                 self._contest, network1, network2, 1 if k <= num_contest // 2 else -1, k == 1) for k in range(1, num_contest + 1)]
-            for f in futures:
+            for k, f in enumerate(futures):
                 winner = f.result()
+                print(f'GAME {k + 1}: ', end='')
                 if winner == 1:
                     one_won += 1
+                    print('WON ', end='')
                 elif winner == -1:
                     two_won += 1
+                    print('LOST', end='')
                 else:
                     draws += 1
+                    print('DRAW', end='')
+                print(f' - NEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws}')
 
         return one_won, two_won, draws
 
