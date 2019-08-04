@@ -17,4 +17,4 @@ while True:
 		click_image(RUN_BUTTON, pos, 'left', 0.25)
 	else:
 		print('Waiting for cell to stop...', end='\r')
-	time.sleep(10)
+	time.sleep(5)
