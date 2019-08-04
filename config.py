@@ -13,7 +13,7 @@ config = {
     # neural_network
     'train_use_gpu' : True,                     # train neural network using cuda
     'lr': 1e-3,                                 # learning rate
-    'lr_map': {
+    'lr_schedule': {
         0: 1e-2,
         400: 1e-3,
         600: 1e-4
@@ -41,7 +41,9 @@ config = {
 
     'drive_path': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
     'iteration_path': 'models/iteration.txt',
-    'best_path': 'models/best.txt'
+    'best_path': 'models/best.txt',
+
+    'show_ram': False,
 }
 
 # action size

@@ -69,19 +69,23 @@ class Learner():
         self.best_path = config['best_path']
         
         self.lr = config['lr']
-        self.lr_map = config['lr_map']
+        self.lr_schedule = config['lr_schedule']
         self.gomoku_gui.use_gpu = config['train_use_gpu']
+        
+        self.gomoku_gui.show_ram = config['show_ram']
 
         # start gui
         t = threading.Thread(target=self.gomoku_gui.loop)
         t.start()
     
     def update_lr(self, i):
+        if not self.lr_schedule: return
+
         new_lr = self.lr
-        for upper in self.lr_map:
+        for upper in self.lr_schedule:
             if i < upper:
                 break
-            new_lr = self.lr_map[upper]
+            new_lr = self.lr_schedule[upper]
         if new_lr != self.lr:
             self.lr = new_lr
             print('New Learning Rate:', self.lr)

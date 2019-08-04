@@ -18,8 +18,8 @@ class GomokuCMD():
 
         self.reset_status()
 
-        self.output_util = True
         self.timezone = 'Asia/Ho_Chi_Minh'
+        self.show_ram = False
         self.use_gpu = True
 
         self.iteration = -1
@@ -62,6 +62,7 @@ class GomokuCMD():
         self.number[x][y] = self.k
         
         self.last_move = (x, y)
+        self.print_ram()
         self.print_board()
 
         self.k += 1
@@ -83,10 +84,9 @@ class GomokuCMD():
         self.human_move = y * self.n + x
 
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
-        # assert self.board[x][y] == 0, 'Position Already Occupied!'
     
-    def print_util(self):
-        if not self.output_util: return
+    def print_ram(self):
+        if not self.show_ram: return
         
         if self.use_gpu:
             gpu = GPU.getGPUs()[0]
@@ -96,6 +96,7 @@ class GomokuCMD():
         
         print('Process size:', (humanize.naturalsize(process.memory_info().rss)))
         print(f'CPU: {psutil.cpu_percent()}% | RAM Free:', humanize.naturalsize(ram.available),'| Used:', humanize.naturalsize(ram_used), '({0:.1f}%)'.format(ram.percent), '| Total:', humanize.naturalsize(ram.total))
+
         if self.use_gpu:
             print('GPU: {0:.1f}%'.format(gpu.load*100) ,'| RAM Free: {0:.1f} GB | Used: {1:.1f} GB ({2:.1f}%) | Total {3:.1f} GB'.format(gpu.memoryFree/1024, gpu.memoryUsed/1024, gpu.memoryUtil*100, gpu.memoryTotal/1024))
         
