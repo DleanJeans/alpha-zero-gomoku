@@ -119,7 +119,7 @@ bool Gomoku::check_line(int x, int y, int x_mul, int y_mul) {
       sum += 1;
     else if (current_piece == -root_piece)
       blocks += 1;
-  } while (current_piece == root_piece);
+  } while (current_piece == root_piece && sum <= n_in_row);
   
   return abs(sum) >= n_in_row && blocks < 2;
 }
