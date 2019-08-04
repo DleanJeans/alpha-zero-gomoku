@@ -2,6 +2,7 @@
 #include <float.h>
 #include <numeric>
 #include <iostream>
+#include <algorithm>
 
 #include <mcts.h>
 
@@ -151,7 +152,23 @@ MCTS::MCTS(NeuralNetwork *neural_network, unsigned int thread_num, double c_puct
       num_mcts_sims(num_mcts_sims),
       c_virtual_loss(c_virtual_loss),
       action_size(action_size),
-      root(new TreeNode(nullptr, 1., action_size), MCTS::tree_deleter){}
+      root(new TreeNode(nullptr, 1., action_size), MCTS::tree_deleter){
+        for (unsigned int i = 0; i < action_size; i++)
+          indices.push_back(i);
+        
+        int side = int(sqrt(action_size));
+        int center = int(side / 2);
+
+        auto distance_to_center = [side, center](int i) {
+          int y = int(i / side), x = i - y * side;
+          double dist = sqrt(pow(center - y, 2) + pow(center - x, 2));
+          return dist;
+        };
+
+        std::sort(indices.begin(), indices.end(), [distance_to_center](int a, int b) {
+          return distance_to_center(a) < distance_to_center(b);
+        });
+      }
 
 void MCTS::update_with_move(int last_action) {
   auto old_root = this->root.get();
@@ -212,8 +229,8 @@ std::vector<double> MCTS::get_action_probs(Gomoku *gomoku, double temp) {
   if (temp - 1e-3 < FLT_EPSILON) {
     unsigned int max_count = 0;
     unsigned int best_action = 0;
-
-    for (unsigned int i = 0; i < children.size(); i++) {
+    
+    for (unsigned int i : indices) {
       if (children[i] && children[i]->n_visited.load() > max_count) {
         max_count = children[i]->n_visited.load();
         best_action = i;

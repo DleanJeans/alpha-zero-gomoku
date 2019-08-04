@@ -63,4 +63,5 @@ class MCTS {
   unsigned int num_mcts_sims;
   double c_puct;
   double c_virtual_loss;
+  std::vector<unsigned int> indices;
 };
