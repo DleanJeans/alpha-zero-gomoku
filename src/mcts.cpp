@@ -15,14 +15,15 @@ TreeNode::TreeNode()
       p_sa(0),
       q_sa(0) {}
 
-TreeNode::TreeNode(TreeNode *parent, double p_sa, unsigned int action_size)
+TreeNode::TreeNode(TreeNode *parent, double p_sa, unsigned int action_size, std::vector<unsigned int>* indices)
     : parent(parent),
       children(action_size, nullptr),
       is_leaf(true),
       virtual_loss(0),
       n_visited(0),
       q_sa(0),
-      p_sa(p_sa) {}
+      p_sa(p_sa),
+      indices(indices) {}
 
 TreeNode::TreeNode(
     const TreeNode &node) {  // because automic<>, define copy function
@@ -30,6 +31,7 @@ TreeNode::TreeNode(
   this->parent = node.parent;
   this->children = node.children;
   this->is_leaf = node.is_leaf;
+  this->indices = node.indices;
 
   this->n_visited.store(node.n_visited.load());
   this->p_sa = node.p_sa;
@@ -47,6 +49,7 @@ TreeNode &TreeNode::operator=(const TreeNode &node) {
   this->parent = node.parent;
   this->children = node.children;
   this->is_leaf = node.is_leaf;
+  this->indices = node.indices;
 
   this->n_visited.store(node.n_visited.load());
   this->p_sa = node.p_sa;
@@ -61,7 +64,7 @@ unsigned int TreeNode::select(double c_puct, double c_virtual_loss) {
   unsigned int best_move = 0;
   TreeNode *best_node;
 
-  for (unsigned int i = 0; i < this->children.size(); i++) {
+  for (unsigned int i : *indices) {
     // empty node
     if (children[i] == nullptr) {
       continue;
@@ -91,12 +94,12 @@ void TreeNode::expand(const std::vector<double> &action_priors) {
     if (this->is_leaf) {
       unsigned int action_size = this->children.size();
 
-      for (unsigned int i = 0; i < action_size; i++) {
+      for (unsigned int i : *indices) {
         // illegal action
         if (abs(action_priors[i] - 0) < FLT_EPSILON) {
           continue;
         }
-        this->children[i] = new TreeNode(this, action_priors[i], action_size);
+        this->children[i] = new TreeNode(this, action_priors[i], action_size, indices);
       }
 
       // not leaf
@@ -152,23 +155,30 @@ MCTS::MCTS(NeuralNetwork *neural_network, unsigned int thread_num, double c_puct
       num_mcts_sims(num_mcts_sims),
       c_virtual_loss(c_virtual_loss),
       action_size(action_size),
-      root(new TreeNode(nullptr, 1., action_size), MCTS::tree_deleter){
-        for (unsigned int i = 0; i < action_size; i++)
-          indices.push_back(i);
-        
-        int side = int(sqrt(action_size));
-        int center = int(side / 2);
+      indices(create_indices()),
+      root(new TreeNode(nullptr, 1., action_size, &indices), MCTS::tree_deleter) {}
 
-        auto distance_to_center = [side, center](int i) {
-          int y = int(i / side), x = i - y * side;
-          double dist = sqrt(pow(center - y, 2) + pow(center - x, 2));
-          return dist;
-        };
+std::vector<unsigned int> MCTS::create_indices() {
+  std::vector<unsigned int> indices;
 
-        std::sort(indices.begin(), indices.end(), [distance_to_center](int a, int b) {
-          return distance_to_center(a) < distance_to_center(b);
-        });
-      }
+  for (unsigned int i = 0; i < action_size; i++)
+    indices.push_back(i);
+  
+  int side = int(sqrt(action_size));
+  int center = int(side / 2);
+
+  auto distance_to_center = [side, center](int i) {
+    int y = int(i / side), x = i - y * side;
+    double dist = sqrt(pow(center - y, 2) + pow(center - x, 2));
+    return dist;
+  };
+
+  std::sort(indices.begin(), indices.end(), [distance_to_center](int a, int b) {
+    return distance_to_center(a) < distance_to_center(b);
+  });
+
+  return indices;
+}
 
 void MCTS::update_with_move(int last_action) {
   auto old_root = this->root.get();
@@ -182,7 +192,7 @@ void MCTS::update_with_move(int last_action) {
 
     this->root.reset(new_node);
   } else {
-    this->root.reset(new TreeNode(nullptr, 1., this->action_size));
+    this->root.reset(new TreeNode(nullptr, 1., this->action_size, &indices));
   }
 }
 

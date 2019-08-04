@@ -17,7 +17,7 @@ class TreeNode {
 
   TreeNode();
   TreeNode(const TreeNode &node);
-  TreeNode(TreeNode *parent, double p_sa, unsigned action_size);
+  TreeNode(TreeNode *parent, double p_sa, unsigned action_size, std::vector<unsigned int>* indices);
 
   TreeNode &operator=(const TreeNode &p);
 
@@ -40,6 +40,8 @@ class TreeNode {
   double p_sa;
   double q_sa;
   std::atomic<int> virtual_loss;
+  
+  std::vector<unsigned int>* indices;
 };
 
 class MCTS {
@@ -53,6 +55,7 @@ class MCTS {
  private:
   void simulate(std::shared_ptr<Gomoku> game);
   static void tree_deleter(TreeNode *t);
+  std::vector<unsigned int> create_indices();
 
   // variables
   std::unique_ptr<TreeNode, decltype(MCTS::tree_deleter) *> root;
@@ -63,5 +66,6 @@ class MCTS {
   unsigned int num_mcts_sims;
   double c_puct;
   double c_virtual_loss;
+
   std::vector<unsigned int> indices;
 };
