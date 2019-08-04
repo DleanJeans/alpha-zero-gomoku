@@ -188,7 +188,7 @@ class Learner():
                 
                 text += '\n\n'
                 print(text)
-                text = f'ITER :: {i}\n{text}'
+                text = f'ITER :: {i}{text}'
 
                 with open(self.best_path, 'a+') as file:
                     file.write(text)
