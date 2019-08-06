@@ -42,6 +42,7 @@ config = {
     'drive_path': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
     'iteration_path': 'models/iteration.txt',
     'best_path': 'models/best.txt',
+    'upload_every_iters': 1,
 
     'show_ram': False,
 }

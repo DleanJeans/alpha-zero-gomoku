@@ -69,6 +69,8 @@ class Learner():
         self.uploader.iteration_path = config['iteration_path']
         self.uploader.best_path = config['best_path']
         self.uploader.get_time = self.gomoku_gui.get_time
+
+        self.upload_every_iters = config['upload_every_iters']
         
         self.lr = config['lr']
         self.lr_schedule = config['lr_schedule']
@@ -124,7 +126,7 @@ class Learner():
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
-            if i > start_iter:
+            if i > start_iter and i % self.upload_every_iters == 0:
                 self.uploader.start_thread_uploading()
             
             self.gomoku_gui.iteration = i
