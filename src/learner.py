@@ -1,7 +1,6 @@
 from collections import deque
 from os import path, mkdir
 import os
-import threading
 import time
 import math
 import numpy as np
@@ -18,6 +17,7 @@ from library import MCTS, Gomoku, NeuralNetwork
 
 from neural_network import NeuralNetWorkWrapper
 from gomoku_cmd import GomokuCMD
+from uploader import Uploader
 
 def tuple_2d_to_numpy_2d(tuple_2d):
     # help function
@@ -64,9 +64,11 @@ class Learner():
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
 
-        self.drive_path = config['drive_path']
-        self.iteration_path = config['iteration_path']
-        self.best_path = config['best_path']
+        self.uploader = Uploader()
+        self.uploader.drive_path = config['drive_path']
+        self.uploader.iteration_path = config['iteration_path']
+        self.uploader.best_path = config['best_path']
+        self.uploader.get_time = self.gomoku_gui.get_time
         
         self.lr = config['lr']
         self.lr_schedule = config['lr_schedule']
@@ -75,7 +77,7 @@ class Learner():
         self.gomoku_gui.show_ram = config['show_ram']
 
         # start gui
-        t = threading.Thread(target=self.gomoku_gui.loop)
+        t = Thread(target=self.gomoku_gui.loop)
         t.start()
     
     def update_lr(self, i):
@@ -111,12 +113,7 @@ class Learner():
             self.nnet.save_model()
             self.nnet.save_model('models', "best_checkpoint")
         
-        start_iter = 1
-        if path.exists(self.iteration_path):
-            with open(self.iteration_path, 'r') as file:
-                start_iter = int(file.read())
-        
-        upload_thread = Thread(target=self.upload_models)
+        start_iter = self.uploader.read_iteration()
 
         for i in range(start_iter, self.num_iters + 1):
             # self play in parallel
@@ -127,10 +124,8 @@ class Learner():
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
-            if i > start_iter and not upload_thread.is_alive():
-                print(f'Uploading models to Drive...\n{self.gomoku_gui.get_time()}\n')
-                upload_thread = Thread(target=self.upload_models)
-                upload_thread.start()
+            if i > start_iter:
+                self.uploader.start_thread_uploading()
             
             self.gomoku_gui.iteration = i
             print('ITER ::', i)
@@ -190,24 +185,13 @@ class Learner():
                 print(text)
                 text = f'ITER :: {i}{text}'
 
-                with open(self.best_path, 'a+') as file:
-                    file.write(text)
+                self.uploader.add_best_log(text)
 
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
             
-            with open(self.iteration_path, 'w+') as file:
-                file.write(str(i+1))
-                
-    def upload_models(self):
-        shutil.make_archive('models', 'zip', 'models')
-        shutil.copy2('models.zip', self.drive_path)
-        shutil.copy2(self.iteration_path, self.drive_path)
-        if path.exists(self.best_path):
-            shutil.copy2(self.best_path, self.drive_path)
-        print('Uploaded models to Drive!', self.gomoku_gui.get_time(), '\n')
-        sys.stdout.flush()
+            self.uploader.save_iteration(i)
 
     def self_play(self, first_color, libtorch, show):
         """
