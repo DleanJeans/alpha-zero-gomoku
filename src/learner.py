@@ -201,7 +201,8 @@ class Learner():
                 file.write(str(i+1))
                 
     def upload_models(self):
-        shutil.make_archive(self.drive_path + 'models', 'zip', 'models')
+        shutil.make_archive('models', 'zip', 'models')
+        shutil.copy2('models.zip', self.drive_path)
         shutil.copy2(self.iteration_path, self.drive_path)
         if path.exists(self.best_path):
             shutil.copy2(self.best_path, self.drive_path)
