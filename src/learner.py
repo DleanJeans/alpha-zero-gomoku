@@ -120,10 +120,12 @@ class Learner():
             self.update_lr(i)
             self.update_examples_buffer_max_len(i)
             
-            libtorch = NeuralNetwork('./models/checkpoint.pt',
-                                     self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
+            self.uploader.save_iteration(i)       
             
-            if i > start_iter and self.upload_every_iters == 1 or self.upload_every_iters > 1 and i % self.upload_every_iters == 1:
+            libtorch = NeuralNetwork('./models/checkpoint.pt',
+            self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
+            
+            if i > start_iter and self.upload_every_iters == 1 or self.upload_every_iters > 1 and i % self.upload_every_iters == 0:
                 self.uploader.start_thread_uploading()
             
             self.gomoku_gui.iteration = i
@@ -190,8 +192,6 @@ class Learner():
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
-            
-            self.uploader.save_iteration(i)
 
     def self_play(self, first_color, libtorch, show):
         """

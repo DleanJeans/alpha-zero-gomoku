@@ -23,6 +23,9 @@ class Uploader:
         upload_thread.start()
 
     def upload_models(self):
+        if not os.path.exists(self.drive_path):
+            os.makedirs(self.drive_path)
+
         shutil.make_archive('models', 'zip', 'models')
         shutil.copy2('models.zip', self.drive_path)
         
@@ -43,7 +46,7 @@ class Uploader:
 
     def save_iteration(self, i):
         with open(self.iteration_path, 'w+') as file:
-            file.write(str(i+1))
+            file.write(str(i))
     
     def add_best_log(self, text):
         with open(self.best_path, 'a+') as file:
@@ -56,4 +59,4 @@ class Uploader:
         return 1
     
     def upload_best_model(self, i):
-        shutuil.copyfile('models/best_checkpoint.pt', self.drive_path + f'checkpoints/{i}.pt')
+        shutil.copyfile('models/best_checkpoint.pt', self.drive_path + f'checkpoints/{i}.pt')
