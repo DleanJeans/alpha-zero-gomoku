@@ -64,10 +64,7 @@ class Learner():
         self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
                                          config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
 
-        self.uploader = Uploader()
-        self.uploader.drive_path = config['drive_path']
-        self.uploader.iteration_path = config['iteration_path']
-        self.uploader.best_path = config['best_path']
+        self.uploader = Uploader(config)
         self.uploader.get_time = self.gomoku_gui.get_time
 
         self.upload_every_iters = config['upload_every_iters']
@@ -126,7 +123,7 @@ class Learner():
             libtorch = NeuralNetwork('./models/checkpoint.pt',
                                      self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
-            if i > start_iter and i % self.upload_every_iters == 0:
+            if i > start_iter and self.upload_every_iters == 1 or self.upload_every_iters > 1 and i % self.upload_every_iters == 1:
                 self.uploader.start_thread_uploading()
             
             self.gomoku_gui.iteration = i
@@ -182,12 +179,13 @@ class Learner():
                     self.nnet.save_model('models', "best_checkpoint")
                 else:
                     text += 'REJECTING NEW MODEL'
-                
-                text += '\n\n'
-                print(text)
-                text = f'ITER :: {i}{text}'
-
+                    
+                    text += '\n\n'
+                    print(text)
+                    text = f'ITER :: {i}{text}'
+                    
                 self.uploader.add_best_log(text)
+                self.uploader.upload_best_model(i)
 
                 # release gpu memory
                 del libtorch_current

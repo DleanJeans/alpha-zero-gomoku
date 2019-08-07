@@ -6,8 +6,11 @@ import time
 import datetime
 
 class Uploader:
-    def __init__(self):
+    def __init__(self, config):
         self.upload_thread = Thread(target=self.upload_models)
+        self.drive_path = config.drive_path
+        self.iteration_path = config.iteration_path
+        self.best_path = config.best_path
     
     def start_thread_uploading(self):
         if self.upload_thread.is_alive():
@@ -20,16 +23,11 @@ class Uploader:
         upload_thread.start()
 
     def upload_models(self):
-        if not os.path.exists(self.drive_path):
-            os.makedirs(self.drive_path)
-
         shutil.make_archive('models', 'zip', 'models')
-        
-        print(f'Archive created! At {self.get_time()} | Took {self.get_time_elapsed()}\n')
-        self.start_time = time.time()
-        
         shutil.copy2('models.zip', self.drive_path)
+        
         shutil.copy2(self.iteration_path, self.drive_path)
+
         if os.path.exists(self.best_path):
             shutil.copy2(self.best_path, self.drive_path)
         
@@ -54,6 +52,8 @@ class Uploader:
     def read_iteration(self):
         if os.path.exists(self.iteration_path):
             with open(self.iteration_path, 'r') as file:
-                i = int(file.read())
-                return i
+                return int(file.read())
         return 1
+    
+    def upload_best_model(self, i):
+        shutuil.copyfile('models/best_checkpoint.pt', self.drive_path + f'checkpoints/{i}.pt')
