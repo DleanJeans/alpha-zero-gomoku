@@ -181,17 +181,18 @@ class Learner():
                     self.nnet.save_model('models', "best_checkpoint")
                 else:
                     text += 'REJECTING NEW MODEL'
-                    
-                    text += '\n\n'
-                    print(text)
-                    text = f'ITER :: {i}{text}'
-                    
+                
+                text += '\n\n'
+                print(text)
+                
+                text = f'ITER :: {i}{text}'
                 self.uploader.add_best_log(text)
-                self.uploader.upload_best_model(i)
-
+                
                 # release gpu memory
                 del libtorch_current
                 del libtorch_best
+                
+                self.uploader.upload_best_model(i)
 
     def self_play(self, first_color, libtorch, show):
         """

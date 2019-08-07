@@ -59,4 +59,7 @@ class Uploader:
         return 1
     
     def upload_best_model(self, i):
-        shutil.copyfile('models/best_checkpoint.pt', self.drive_path + f'checkpoints/{i}.pt')
+        checkpoints_folder = self.drive_path + 'checkpoints/'
+        if not os.path.exists(checkpoints_folder):
+            os.makedirs(checkpoints_folder)
+        shutil.copyfile('models/best_checkpoint.pt', f'{checkpoints_folder}{i}.pt')
