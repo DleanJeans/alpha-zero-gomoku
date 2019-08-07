@@ -92,10 +92,12 @@ class GomokuCMD():
             gpu = GPU.getGPUs()[0]
         process = psutil.Process(os.getpid())
         ram = psutil.virtual_memory()
-        ram_used = ram.total - ram.available
+
+        ram_free = ram.total - ram.used
+        ram_percent = ram.used / ram.total * 100
         
         print('Process size:', (humanize.naturalsize(process.memory_info().rss)))
-        print(f'CPU: {psutil.cpu_percent()}% | RAM Free:', humanize.naturalsize(ram.available),'| Used:', humanize.naturalsize(ram_used), '({0:.1f}%)'.format(ram.percent), '| Total:', humanize.naturalsize(ram.total))
+        print(f'CPU: {psutil.cpu_percent()}% | RAM Free:', humanize.naturalsize(ram_free),'| Used:', humanize.naturalsize(ram.used), '({0:.1f}%)'.format(ram_percent), '| Total:', humanize.naturalsize(ram.total))
 
         if self.use_gpu:
             print('GPU: {0:.1f}%'.format(gpu.load*100) ,'| RAM Free: {0:.1f} GB | Used: {1:.1f} GB ({2:.1f}%) | Total {3:.1f} GB'.format(gpu.memoryFree/1024, gpu.memoryUsed/1024, gpu.memoryUtil*100, gpu.memoryTotal/1024))
