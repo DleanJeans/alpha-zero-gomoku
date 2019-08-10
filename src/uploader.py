@@ -9,13 +9,15 @@ class Uploader:
     def __init__(self, config):
         self.upload_thread = Thread(target=self.upload_models)
         self.cwd = f'{os.getcwd()}/'
-        self.drive_path = self.cwd + config.drive_path
-        self.iteration_path = self.cwd + config.iteration_path
-        self.best_path = self.cwd + config.best_path
+        self.drive_dir = self.cwd + config.drive_dir
+        self.models_dir = self.cwd + 'models/'
+        self.iteration_path = self.models_dir + config.iteration_path
+        self.best_path = self.models_dir + config.best_path
 
         print()
         print('Current Directory:', self.cwd)
-        print('Drive Path:       ', self.drive_path)
+        print('Drive Directory:  ', self.drive_dir)
+        print('Models Directory: ', self.models_dir)
         print('iteration.txt:    ', self.iteration_path)
         print('best.txt:         ', self.best_path)
         print()
@@ -27,20 +29,20 @@ class Uploader:
 
         self.start_time = time.time()
         print(f'Uploading models to Drive... {self.get_time()}\n')
-        upload_thread = Thread(target=self.upload_models)
-        upload_thread.start()
+        self.upload_thread = Thread(target=self.upload_models)
+        self.upload_thread.start()
 
     def upload_models(self):
-        if not os.path.exists(self.drive_path):
-            os.makedirs(self.drive_path)
+        if not os.path.exists(self.drive_dir):
+            os.makedirs(self.drive_dir)
 
         shutil.make_archive('models', 'zip', 'models')
-        shutil.copy2('models.zip', self.drive_path)
+        shutil.copy2('models.zip', self.drive_dir)
         
-        shutil.copy2(self.iteration_path, self.drive_path)
+        shutil.copy2(self.iteration_path, self.drive_dir)
 
         if os.path.exists(self.best_path):
-            shutil.copy2(self.best_path, self.drive_path)
+            shutil.copy2(self.best_path, self.drive_dir)
         
         print(f'Uploaded models to Drive! At {self.get_time()} | Took {self.get_time_elapsed()}s\n')
         sys.stdout.flush()
@@ -67,7 +69,7 @@ class Uploader:
         return 1
     
     def upload_best_model(self, i):
-        checkpoints_folder = self.drive_path + 'checkpoints/'
+        checkpoints_folder = self.drive_dir + 'checkpoints/'
         if not os.path.exists(checkpoints_folder):
             os.makedirs(checkpoints_folder)
         shutil.copyfile('models/best_checkpoint.pt', f'{checkpoints_folder}{i}.pt')

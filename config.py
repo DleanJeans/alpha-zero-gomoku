@@ -39,10 +39,9 @@ config = {
     # test
     'human_color': 1,                            # human player's color
 
-    'drive_path': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
-    'iteration_path': 'models/iteration.txt',
-    'best_path': 'models/best.txt',
-    'upload_every_iters': 1,
+    'drive_dir': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
+    'iteration_path': 'iteration.txt',
+    'best_path': 'best.txt',
 
     'show_ram': False,
 }

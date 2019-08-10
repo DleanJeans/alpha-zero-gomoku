@@ -66,8 +66,6 @@ class Learner():
 
         self.uploader = Uploader(config)
         self.uploader.get_time = self.gomoku_gui.get_time
-
-        self.upload_every_iters = config['upload_every_iters']
         
         self.lr = config['lr']
         self.lr_schedule = config['lr_schedule']
@@ -103,14 +101,14 @@ class Learner():
     def learn(self):
         # train the model by self play        
 
-        if path.exists('models/checkpoint.example'):
-            print("Loading checkpoint...")
-            self.nnet.load_model()
-            self.load_samples()
+        if path.exists(self.uploader.models_dir + 'checkpoint.example'):
+            print('Loading checkpoint...')
+            self.nnet.load_model(self.uploader.models_dir)
+            self.load_samples(self.uploader.models_dir)
         else:
             # save torchscript
-            self.nnet.save_model()
-            self.nnet.save_model('models', "best_checkpoint")
+            self.nnet.save_model(self.uploader.models_dir)
+            self.nnet.save_model(self.uploader.models_dir, "best_checkpoint")
         
         start_iter = self.uploader.read_iteration()
 
@@ -120,12 +118,12 @@ class Learner():
             self.update_lr(i)
             self.update_examples_buffer_max_len(i)
             
-            self.uploader.save_iteration(i)       
+            self.uploader.save_iteration(i)
             
-            libtorch = NeuralNetwork('./models/checkpoint.pt',
+            libtorch = NeuralNetwork(self.uploader.models_dir + 'checkpoint.pt',
             self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
-            if i > start_iter and self.upload_every_iters == 1 or self.upload_every_iters > 1 and i % self.upload_every_iters == 0:
+            if i > start_iter:
                 self.uploader.start_thread_uploading()
             
             self.gomoku_gui.iteration = i
@@ -162,15 +160,15 @@ class Learner():
             print(f'Training {int(epochs)} epochs...')
 
             self.nnet.train(train_data, self.batch_size, int(epochs))
-            self.nnet.save_model()
-            self.save_samples()
+            self.nnet.save_model(self.uploader.models_dir)
+            self.save_samples(self.uploader.models_dir)
 
             # compare performance
             if i % self.check_freq == 0:
                 print('Pitting aganst best model...')
-                libtorch_current = NeuralNetwork('./models/checkpoint.pt',
+                libtorch_current = NeuralNetwork(self.uploader.models_dir + 'checkpoint.pt',
                                          self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
-                libtorch_best = NeuralNetwork('./models/best_checkpoint.pt',
+                libtorch_best = NeuralNetwork(self.uploader.models_dir + 'best_checkpoint.pt',
                                               self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
 
                 one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest)
@@ -178,7 +176,7 @@ class Learner():
 
                 if one_won + two_won > 0 and float(one_won) / (one_won + two_won) >= self.update_threshold:
                     text += 'ACCEPTING NEW MODEL'
-                    self.nnet.save_model('models', "best_checkpoint")
+                    self.nnet.save_model(self.uploader.models_dir, "best_checkpoint")
                 else:
                     text += 'REJECTING NEW MODEL'
                 
@@ -352,9 +350,9 @@ class Learner():
                 l += [(newB, newPi.ravel(), np.argmax(newAction) if last_action != -1 else -1)]
         return l
 
-    def play_with_human(self, human_first=True, checkpoint_name="best_checkpoint"):
+    def play_with_human(self, human_first=True, checkpoint_name='best_checkpoint'):
         # load best model
-        libtorch_best = NeuralNetwork('./models/best_checkpoint.pt', self.libtorch_use_gpu, 12)
+        libtorch_best = NeuralNetwork(self.uploader.models_dir + f'{checkpoint_name}.pt', self.libtorch_use_gpu, 12)
         mcts_best = MCTS(libtorch_best, self.num_mcts_threads * 3, \
              self.c_puct, self.num_mcts_sims * 6, self.c_virtual_loss, self.action_size)
 
@@ -366,7 +364,7 @@ class Learner():
         player_index = human_color if human_first else -human_color
 
         self.gomoku_gui.reset_status()
-        self.gomoku_gui.output_util = False
+        self.gomoku_gui.print_ram = False
 
         while True:
             player = players[player_index + 1]
