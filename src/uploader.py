@@ -8,9 +8,17 @@ import datetime
 class Uploader:
     def __init__(self, config):
         self.upload_thread = Thread(target=self.upload_models)
-        self.drive_path = config.drive_path
-        self.iteration_path = config.iteration_path
-        self.best_path = config.best_path
+        self.cwd = f'{os.getcwd()}/'
+        self.drive_path = self.cwd + config.drive_path
+        self.iteration_path = self.cwd + config.iteration_path
+        self.best_path = self.cwd + config.best_path
+
+        print()
+        print('Current Directory:', self.cwd)
+        print('Drive Path:       ', self.drive_path)
+        print('iteration.txt:    ', self.iteration_path)
+        print('best.txt:         ', self.best_path)
+        print()
     
     def start_thread_uploading(self):
         if self.upload_thread.is_alive():
