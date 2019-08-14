@@ -13,28 +13,27 @@ class Uploader:
         self.models_dir = self.cwd + 'models/'
         self.iteration_path = self.models_dir + config.iteration_path
         self.best_path = self.models_dir + config.best_path
-
-        print()
-        print('Current Directory:', self.cwd)
-        print('Drive Directory:  ', self.drive_dir)
-        print('Models Directory: ', self.models_dir)
-        print('iteration.txt:    ', self.iteration_path)
-        print('best.txt:         ', self.best_path)
-        print()
+        self.upload_now = config.upload_now
+        self.start_iter = 1
     
-    def start_thread_uploading(self):
-        if self.upload_thread.is_alive():
+    def request_upload(self, i):
+        if self.should_upload(i):
+            self.start_upload_thread()
+        else:
             print('Still uploading... Aborting this upload request...\n')
-            return
 
-        print(f'Uploading models to Drive... {self.get_time()}\n')
+    def should_upload(self, i):
+        return not self.upload_thread.is_alive() and self.upload_now or i > self.start_iter
+
+    def start_upload_thread(self):
         self.upload_thread = Thread(target=self.upload_models)
         self.upload_thread.start()
-    
-    def get_time_log(self):
-        return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
+        
+        def get_time_log(self):
+            return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
         
     def upload_models(self):
+        print(f'Uploading models to Drive... {self.get_time()}\n')
         self.start_time = time.time()
 
         if not os.path.exists(self.drive_dir):
@@ -71,8 +70,8 @@ class Uploader:
     def read_iteration(self):
         if os.path.exists(self.iteration_path):
             with open(self.iteration_path, 'r') as file:
-                return int(file.read())
-        return 1
+                self.start_iter = int(file.read())
+        return self.start_iter
     
     def upload_best_model(self, i):
         checkpoints_folder = self.drive_dir + 'checkpoints/'

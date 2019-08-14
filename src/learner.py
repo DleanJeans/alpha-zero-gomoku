@@ -123,8 +123,7 @@ class Learner():
             libtorch = NeuralNetwork(self.uploader.models_dir + 'checkpoint.pt',
             self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads)
             
-            if i > start_iter:
-                self.uploader.start_thread_uploading()
+            self.uploader.request_upload(i)
             
             self.gomoku_gui.iteration = i
             print('ITER ::', i)
