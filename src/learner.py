@@ -352,8 +352,11 @@ class Learner():
     def play_with_human(self, human_first=True, checkpoint_name='best_checkpoint'):
         # load best model
         libtorch_best = NeuralNetwork(self.uploader.models_dir + f'{checkpoint_name}.pt', self.libtorch_use_gpu, 12)
-        mcts_best = MCTS(libtorch_best, self.num_mcts_threads * 3, \
-             self.c_puct, self.num_mcts_sims * 6, self.c_virtual_loss, self.action_size)
+        mcts_best = MCTS(libtorch_best, self.num_mcts_threads * self.num_train_threads, \
+             self.c_puct, self.num_mcts_sims * 2, self.c_virtual_loss, self.action_size)
+
+        if self.uploader.upload_now:
+            self.uploader.request_upload()
 
         # create gomoku game
         human_color = self.gomoku_gui.get_human_color()
@@ -363,7 +366,7 @@ class Learner():
         player_index = human_color if human_first else -human_color
 
         self.gomoku_gui.reset_status()
-        self.gomoku_gui.print_ram = False
+        self.gomoku_gui.show_ram = False
 
         while True:
             player = players[player_index + 1]

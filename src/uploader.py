@@ -16,10 +16,10 @@ class Uploader:
         self.upload_now = config.upload_now
         self.start_iter = 1
     
-    def request_upload(self, i):
+    def request_upload(self, i = 0):
         if self.should_upload(i):
             self.start_upload_thread()
-        else:
+        elif self.upload_thread.is_alive():
             print('Still uploading... Aborting this upload request...\n')
 
     def should_upload(self, i):
@@ -29,8 +29,8 @@ class Uploader:
         self.upload_thread = Thread(target=self.upload_models)
         self.upload_thread.start()
         
-        def get_time_log(self):
-            return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
+    def get_time_log(self):
+        return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
         
     def upload_models(self):
         print(f'Uploading models to Drive... {self.get_time()}\n')
