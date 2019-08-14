@@ -4,11 +4,20 @@ import numpy as np
 from string import ascii_uppercase
 from datetime import datetime
 import pytz
+import sys
 
 import psutil
 import humanize
 import os
 import GPUtil as GPU
+
+from termcolor import colored
+
+colors = {
+    'x': 'green',
+    'o': 'red',
+    '_': None
+}
 
 class GomokuCMD():
     def __init__(self, n, human_color=1):
@@ -120,7 +129,11 @@ class GomokuCMD():
             y_label = str(y).zfill(2) + ' '
             board += y_label
             for x in range(self.n):
-                piece = self._get_piece(x, y)
+                try:
+                    piece = self._get_piece(x, y)
+                except Exception:
+                    print(sys.exc_info())
+                    sys.stdout.flush()
                 board += '|' + piece
             board += '| %s\n' % y_label
         
@@ -134,6 +147,13 @@ class GomokuCMD():
             -1: 'o',
             0: '_'
         }[piece]
+
+        color = colors[piece]
+        on_color = None
+
         if (x, y) == self.last_move:
             piece = piece.upper()
+            # on_color = 'on_' + color
+            color = 'yellow'
+        piece = colored(piece, color, on_color)
         return piece
