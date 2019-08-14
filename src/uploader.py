@@ -27,25 +27,31 @@ class Uploader:
             print('Still uploading... Aborting this upload request...\n')
             return
 
-        self.start_time = time.time()
         print(f'Uploading models to Drive... {self.get_time()}\n')
         self.upload_thread = Thread(target=self.upload_models)
         self.upload_thread.start()
-
+    
+    def get_time_log(self):
+        return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
+        
     def upload_models(self):
+        self.start_time = time.time()
+
         if not os.path.exists(self.drive_dir):
             os.makedirs(self.drive_dir)
 
-        shutil.make_archive('models', 'zip', 'models')
-        shutil.copy2('models.zip', self.drive_dir)
-        
         shutil.copy2(self.iteration_path, self.drive_dir)
-
         if os.path.exists(self.best_path):
             shutil.copy2(self.best_path, self.drive_dir)
+
+        shutil.make_archive('models', 'zip', 'models')
         
-        print(f'Uploaded models to Drive! At {self.get_time()} | Took {self.get_time_elapsed()}s\n')
-        sys.stdout.flush()
+        print(f'Archive created!', self.get_time_log(), '\n'); sys.stdout.flush()
+        self.start_time = time.time()
+
+        shutil.copy2('models.zip', self.drive_dir)
+
+        print(f'Models uploaded to Drive!', self.get_time_log(), '\n'); sys.stdout.flush()
     
     def get_time_elapsed(self):
         now = time.time()
