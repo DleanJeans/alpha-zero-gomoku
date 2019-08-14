@@ -1,10 +1,10 @@
 import pyautogui
 import time
 
-FIRST_TAB_POS = [200, 10]
+FIRST_TAB_POS = [125, 20]
 TAB_SPACING = 200
 TAB_COUNT = 2
-WAIT_TIME = 15
+WAIT_TIME = 10
 
 i = 0
 while True:
