@@ -164,6 +164,7 @@ class Learner():
 
             # compare performance
             if i % self.check_freq == 0:
+                self.gomoku_gui.contest = True
                 print('Pitting aganst best model...')
                 libtorch_current = NeuralNetwork(self.uploader.models_dir + 'checkpoint.pt',
                                          self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
@@ -190,6 +191,7 @@ class Learner():
                 del libtorch_best
                 
                 self.uploader.upload_best_model(i)
+                self.gomoku_gui.contest = False
 
     def self_play(self, first_color, libtorch, show):
         """
@@ -249,7 +251,9 @@ class Learner():
             action = np.random.choice(len(prob), p=prob)
 
             if show:
+                self.gomoku_gui.set_top_choices(prob, action)
                 self.gomoku_gui.execute_move(cur_player, action)
+            
             gomoku.execute_move(action)
             player1.update_with_move(action)
             player2.update_with_move(action)

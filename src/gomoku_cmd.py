@@ -5,6 +5,7 @@ from string import ascii_uppercase
 from datetime import datetime
 import pytz
 import sys
+import time
 
 import psutil
 import humanize
@@ -32,12 +33,17 @@ class GomokuCMD():
         self.use_gpu = True
 
         self.iteration = -1
+        self.contest = False
 
     def __del__(self):
         # close window
         self.is_running = False
 
     def reset_status(self):
+        self.top_choices = {}
+        self.chosen = -1
+        self.last_time = None
+
         has_board = hasattr(self, 'board')
 
         self.board = np.zeros((self.n, self.n), dtype=int)
@@ -81,18 +87,24 @@ class GomokuCMD():
 
         while self.is_running:
             if self.is_human:
-                self.human_move = input('Move: ')
-                self._human_move_to_number()
+                alphanum = input('Move: ')
+                self.human_move = self.alphanum_to_number(alphanum)
                 self.execute_move(self.human_color, self.human_move)
                 self.set_is_human(False)
     
-    def _human_move_to_number(self):
-        x = ascii_uppercase.find(self.human_move[:1].upper())
-        y = int(self.human_move[1:])
-        x, y = y, x
-        self.human_move = y * self.n + x
+    def alphanum_to_number(self, alphanum):
+        y = ascii_uppercase.find(alphanum[:1].upper())
+        x = int(alphanum[1:])
 
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
+        return y * self.n + x
+    
+    def number_to_alphanum(self, number):
+        x = number // self.n
+        y = number - self.n * x
+        x = ascii_uppercase[x]
+
+        return f'{x}{y}'
     
     def print_ram(self):
         if not self.show_ram: return
@@ -111,15 +123,53 @@ class GomokuCMD():
         
         print('')
 
+    def set_top_choices(self, probs, action):
+        top_actions = np.argsort(-probs)[:3]
+        if action not in top_actions:
+            top_actions = np.concatenate((top_actions, [action]))
+
+        self.top_choices = { action:probs[action] for action in top_actions }
+        self.chosen = np.where(top_actions==action)[0][0]
+
+    def print_top_choices(self):
+        if not self.top_choices: return
+        output = 'CHOICES :: '
+
+        for i, (action, policy) in enumerate(self.top_choices.items()):
+            alphanum = self.number_to_alphanum(action)
+            policy *= 100
+
+            choice = f'{alphanum}={policy:.2f}%'
+            prefix = f'#{i+1}' if i < 3 else 'Chosen'
+            choice = f'{prefix} {choice}'
+            if i == self.chosen:
+                choice = colored(choice, 'yellow')
+
+            output += choice
+            if i+1 < len(self.top_choices):
+                output += ' | '
+
+        print(output)
+
     def get_time(self):
         return datetime.now(pytz.timezone(self.timezone)).strftime('%Y-%m-%d - %I:%M:%S %p')
-
+    
     def print_board(self):
-        now = self.get_time()
+        taken = -1
+        now = time.time()
+        if self.last_time:
+            taken = now - self.last_time
+        taken = f' - TAKEN {taken:.2f} SEC' if taken >= 0 else ''
+        self.last_time = now
+
+        timestamp = self.get_time()
+        contest = ' (CONTEST)' if self.contest else ''
 
         if self.iteration > -1:
             print(f'ITER {self.iteration} - ', end='')
-        print(f'MOVE {self.k}: {now}')
+        print(f'MOVE {self.k}: {timestamp}{taken}{contest}')
+
+        self.print_top_choices()
 
         x_labels = '    ' + ' '.join(ascii_uppercase[0:self.n]) + '\n'
         
@@ -129,11 +179,7 @@ class GomokuCMD():
             y_label = str(y).zfill(2) + ' '
             board += y_label
             for x in range(self.n):
-                try:
-                    piece = self._get_piece(x, y)
-                except Exception:
-                    print(sys.exc_info())
-                    sys.stdout.flush()
+                piece = self._get_piece(x, y)
                 board += '|' + piece
             board += '| %s\n' % y_label
         
@@ -153,7 +199,6 @@ class GomokuCMD():
 
         if (x, y) == self.last_move:
             piece = piece.upper()
-            # on_color = 'on_' + color
             color = 'yellow'
         piece = colored(piece, color, on_color)
         return piece
