@@ -45,6 +45,7 @@ config = {
     'upload_now': False,
 
     'show_ram': False,
+    'force_start_center': False,
 }
 
 # action size
