@@ -70,13 +70,19 @@ class GomokuCMD():
         return self.human_color
 
     def execute_move(self, color, move):
-        x, y = move // self.n, move % self.n
-        assert self.board[x][y] == 0
+        x, y = self.number_to_2d(move)
+        piece = self.board[x][y]
+
+        if piece != 0:
+            alphanum = self.number_to_alphanum(move)
+            piece = self._get_piece(x, y)
+            assert self.board[x][y] == 0, f'{alphanum} is not empty: {piece}'
 
         self.board[x][y] = color
         self.number[x][y] = self.k
         
         self.last_move = (x, y)
+
         self.print_ram()
         self.print_board()
 
@@ -89,7 +95,11 @@ class GomokuCMD():
             if self.is_human:
                 alphanum = input('Move: ')
                 self.human_move = self.alphanum_to_number(alphanum)
-                self.execute_move(self.human_color, self.human_move)
+                try:
+                    self.execute_move(self.human_color, self.human_move)
+                except Exception as e:
+                    print(e)
+                    continue
                 self.set_is_human(False)
     
     def alphanum_to_number(self, alphanum):
@@ -98,10 +108,13 @@ class GomokuCMD():
 
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
         return y * self.n + x
+
+    def number_to_2d(self, number):
+        x, y = number // self.n, number % self.n
+        return x, y
     
     def number_to_alphanum(self, number):
-        x = number // self.n
-        y = number - self.n * x
+        x, y = self.number_to_2d(number)
         x = ascii_uppercase[x]
 
         return f'{x}{y}'
