@@ -9,6 +9,7 @@ config = {
     'num_mcts_sims': 1600,                      # mcts simulation times
     'c_puct': 5,                                # puct coeff
     'c_virtual_loss': 3,                        # virtual loss coeff
+    'contest_mcts': 4,
 
     # neural_network
     'train_use_gpu' : True,                     # train neural network using cuda

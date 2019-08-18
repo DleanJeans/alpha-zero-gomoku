@@ -74,6 +74,7 @@ class Learner():
         self.gomoku_gui.show_ram = config['show_ram']
 
         self.force_start_center = config['force_start_center']
+        self.contest_mcts = config['contest_mcts']
 
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
@@ -169,9 +170,9 @@ class Learner():
                 self.gomoku_gui.contest = True
                 print('Pitting aganst best model...')
                 libtorch_current = NeuralNetwork(self.uploader.models_dir + 'checkpoint.pt',
-                                         self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
+                                         self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads * self.contest_mcts // 2)
                 libtorch_best = NeuralNetwork(self.uploader.models_dir + 'best_checkpoint.pt',
-                                              self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads // 2)
+                                              self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads * self.contest_mcts // 2)
 
                 one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest)
                 text = f'\nNEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws}\n'
@@ -363,7 +364,7 @@ class Learner():
         # load best model
         libtorch_best = NeuralNetwork(self.uploader.models_dir + f'{checkpoint_name}.pt', self.libtorch_use_gpu, 12)
         mcts_best = MCTS(libtorch_best, self.num_mcts_threads * self.num_train_threads, \
-             self.c_puct, self.num_mcts_sims * 2, self.c_virtual_loss, self.action_size)
+             self.c_puct, self.num_mcts_sims * self.contest_mcts, self.c_virtual_loss, self.action_size)
 
         if self.uploader.upload_now:
             self.uploader.request_upload()
