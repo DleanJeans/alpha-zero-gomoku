@@ -32,50 +32,50 @@ class Learner():
     def __init__(self, config):
         # see config.py
         # gomoku
-        self.n = config['n']
-        self.n_in_row = config['n_in_row']
-        self.gomoku_gui = GomokuCMD(config['n'], config['human_color'])
-        self.action_size = config['action_size']
+        self.n = config.n
+        self.n_in_row = config.n_in_row
+        self.gomoku_gui = GomokuCMD(config.n, config.human_color)
+        self.action_size = config.action_size
 
         # train
-        self.num_iters = config['num_iters']
-        self.num_eps = config['num_eps']
-        self.num_train_threads = config['num_train_threads']
-        self.check_freq = config['check_freq']
-        self.num_contest = config['num_contest']
-        self.dirichlet_alpha = config['dirichlet_alpha']
-        self.temp = config['temp']
-        self.update_threshold = config['update_threshold']
-        self.num_explore = config['num_explore']
+        self.num_iters = config.num_iters
+        self.num_eps = config.num_eps
+        self.num_train_threads = config.num_train_threads
+        self.check_freq = config.check_freq
+        self.num_contest = config.num_contest
+        self.dirichlet_alpha = config.dirichlet_alpha
+        self.temp = config.temp
+        self.update_threshold = config.update_threshold
+        self.num_explore = config.num_explore
 
-        self.examples_buffer_len = config['examples_buffer_len']
+        self.examples_buffer_len = config.examples_buffer_len
         self.examples_buffer = deque([], maxlen=self.examples_buffer_len[1])
 
         # mcts
-        self.num_mcts_sims = config['num_mcts_sims']
-        self.c_puct = config['c_puct']
-        self.c_virtual_loss = config['c_virtual_loss']
-        self.num_mcts_threads = config['num_mcts_threads']
-        self.libtorch_use_gpu = config['libtorch_use_gpu']
+        self.num_mcts_sims = config.num_mcts_sims
+        self.c_puct = config.c_puct
+        self.c_virtual_loss = config.c_virtual_loss
+        self.num_mcts_threads = config.num_mcts_threads
+        self.libtorch_use_gpu = config.libtorch_use_gpu
 
         # neural network
-        self.batch_size = config['batch_size']
-        self.epochs = config['epochs']
-        self.nnet = NeuralNetWorkWrapper(config['lr'], config['l2'], config['num_layers'],
-                                         config['num_channels'], config['n'], self.action_size, config['train_use_gpu'], self.libtorch_use_gpu)
+        self.batch_size = config.batch_size
+        self.epochs = config.epochs
+        self.nnet = NeuralNetWorkWrapper(config.lr, config.l2, config.num_layers,
+                                         config.num_channels, config.n, self.action_size, config.train_use_gpu, self.libtorch_use_gpu)
 
         self.uploader = Uploader(config)
         self.uploader.get_time = self.gomoku_gui.get_time
         
-        self.lr = config['lr']
-        self.lr_schedule = config['lr_schedule']
-        self.gomoku_gui.use_gpu = config['train_use_gpu']
+        self.lr = config.lr
+        self.lr_schedule = config.lr_schedule
+        self.gomoku_gui.use_gpu = config.train_use_gpu
         
-        self.gomoku_gui.show_ram = config['show_ram']
+        self.gomoku_gui.show_ram = config.show_ram
 
-        self.force_start_center = config['force_start_center']
-        self.contest_mcts = config['contest_mcts']
-
+        self.force_start_center = config.force_start_center
+        self.contest_mcts = config.contest_mcts
+        
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
         t.start()

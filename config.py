@@ -1,3 +1,9 @@
+class DotDict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
 config = {
     # gomoku
     'n': 19,                                    # board size
@@ -46,8 +52,10 @@ config = {
     'upload_now': False,
 
     'show_ram': False,
-    'force_start_center': False,
+    'random_start': False,
 }
 
+config = DotDict(config)
+
 # action size
-config['action_size'] = config['n'] ** 2
+config.action_size = config.n ** 2
