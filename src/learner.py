@@ -73,9 +73,9 @@ class Learner():
         
         self.gomoku_gui.show_ram = config.show_ram
 
-        self.force_start_center = config.force_start_center
+        self.random_start = config.random_start
         self.contest_mcts = config.contest_mcts
-        
+
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
         t.start()
@@ -223,15 +223,16 @@ class Learner():
             episode_step += 1
             player = players[player_index + 1]
 
-            if self.force_start_center and episode_step == 1:
-                prob = np.zeros(self.action_size)
-                center_index = self.action_size // 2
-                prob[center_index] = 1.
             # get action prob
-            elif episode_step <= self.num_explore:
+            if episode_step <= self.num_explore:
                 prob = np.array(list(player.get_action_probs(gomoku, self.temp)))
             else:
                 prob = np.array(list(player.get_action_probs(gomoku, 0)))
+
+            if episode_step == 1 and self.random_start:
+                center = self.action_size // 2
+                prob[center] += 1
+                prob += .01
 
             # generate sample
             board = tuple_2d_to_numpy_2d(gomoku.get_board())

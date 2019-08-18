@@ -24,7 +24,7 @@ public:
   inline unsigned int get_n() const { return this->n; }
 
 private:
-  board_type board;      // game borad
+  board_type board;      // game board
   unsigned int n;        // board size
   unsigned int n_in_row; // 5 in row or else
 

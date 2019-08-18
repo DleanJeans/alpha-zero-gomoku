@@ -70,7 +70,7 @@ class GomokuCMD():
         return self.human_color
 
     def execute_move(self, color, move):
-        x, y = self.number_to_2d(move)
+        x, y = self.number_to_xy(move)
         piece = self.board[x][y]
 
         if piece != 0:
@@ -108,13 +108,16 @@ class GomokuCMD():
 
         assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
         return y * self.n + x
+    
+    def xy_to_number(self, x, y):
+        return y * self.n + x
 
-    def number_to_2d(self, number):
+    def number_to_xy(self, number):
         x, y = number // self.n, number % self.n
         return x, y
     
     def number_to_alphanum(self, number):
-        x, y = self.number_to_2d(number)
+        x, y = self.number_to_xy(number)
         x = ascii_uppercase[x]
 
         return f'{x}{y}'
