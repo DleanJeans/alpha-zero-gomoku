@@ -53,6 +53,7 @@ config = {
 
     'show_ram': False,
     'random_start': False,
+    'center_policy': 1.,
 }
 
 config = DotDict(config)

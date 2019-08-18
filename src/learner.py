@@ -76,6 +76,8 @@ class Learner():
         self.random_start = config.random_start
         self.contest_mcts = config.contest_mcts
 
+        self.center_policy = config.center_policy
+
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
         t.start()
@@ -231,7 +233,7 @@ class Learner():
 
             if episode_step == 1 and self.random_start:
                 center = self.action_size // 2
-                prob[center] += 1
+                prob[center] += self.center_policy
                 prob += .01
 
             # generate sample
