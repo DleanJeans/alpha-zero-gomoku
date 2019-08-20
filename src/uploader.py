@@ -8,13 +8,18 @@ import datetime
 class Uploader:
     def __init__(self, config):
         self.upload_thread = Thread(target=self.upload_models)
+        self.upload_now = config.upload_now
+
         self.cwd = f'{os.getcwd()}/'
         self.drive_dir = self.cwd + config.drive_dir
         self.models_dir = self.cwd + 'models/'
         self.iteration_path = self.models_dir + config.iteration_path
         self.best_path = self.models_dir + config.best_path
-        self.upload_now = config.upload_now
+        self.games_path = self.models_dir + config.games_path
+
         self.start_iter = 1
+        self.game_iter = 0
+        self.num_eps = config.num_eps
     
     def request_upload(self, i = 0):
         if self.should_upload(i):
@@ -40,6 +45,7 @@ class Uploader:
             os.makedirs(self.drive_dir)
 
         shutil.copy2(self.iteration_path, self.drive_dir)
+        shutil.copy2(self.games_path, self.drive_dir)
         if os.path.exists(self.best_path):
             shutil.copy2(self.best_path, self.drive_dir)
 
@@ -71,6 +77,7 @@ class Uploader:
         if os.path.exists(self.iteration_path):
             with open(self.iteration_path, 'r') as file:
                 self.start_iter = int(file.read())
+                self.game_iter = self.start_iter - 1
         return self.start_iter
     
     def upload_best_model(self, i):
@@ -78,3 +85,34 @@ class Uploader:
         if not os.path.exists(checkpoints_folder):
             os.makedirs(checkpoints_folder)
         shutil.copyfile('models/best_checkpoint.pt', f'{checkpoints_folder}{i}.pt')
+    
+    def save_game(self, i, eps, moves):
+        eps += 1
+        with open(self.games_path, 'a+') as file:
+            if i > self.game_iter:
+                file.write(f'ITER :: {i}\n')
+                self.game_iter += 1
+            
+            game = ' '.join([self.number_to_alphanum(m) for m in moves])
+            file.write(f'EPS {eps}: {game}\n')
+            
+            if eps == self.num_eps:
+                file.write('\n')
+    
+    def read_game(self, i, eps):
+        iter_text = f'ITER :: {i}'
+        eps_text = f'EPS {eps}:'
+        
+        with open(self.games_path, 'r') as file:
+            text = file.read()
+        
+        try:
+            iter_pos = text.index(iter_text)
+            start_pos = text.index(eps_text, iter_pos)
+            end_pos = text.index('\n', start_pos)
+        except:
+            print(f'Game of ITER {i} EPS {eps} not found!')
+            return ''
+        
+        text = text[start_pos:end_pos]
+        return text

@@ -66,6 +66,7 @@ class Learner():
 
         self.uploader = Uploader(config)
         self.uploader.get_time = self.gomoku_gui.get_time
+        self.uploader.number_to_alphanum = self.gomoku_gui.number_to_alphanum
         
         self.lr = config.lr
         self.lr_schedule = config.lr_schedule
@@ -78,9 +79,16 @@ class Learner():
 
         self.center_policy = config.center_policy
 
+        self.prob_multiplier = config.prob_multiplier
+
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
         t.start()
+    
+    def print_game(self, i, eps):
+        game = self.uploader.read_game(i, eps)
+        if game:
+            self.gomoku_gui.print_game(game, i, eps)
     
     def update_lr(self, i):
         if not self.lr_schedule: return
@@ -107,13 +115,16 @@ class Learner():
         # train the model by self play        
 
         if path.exists(self.uploader.models_dir + 'checkpoint.example'):
-            print('Loading checkpoint...')
+            print('Loading checkpoint... ', end='')
             self.nnet.load_model(self.uploader.models_dir)
             self.load_samples(self.uploader.models_dir)
-        else:
+            print('Done!')
+        elif not path.exists(self.uploader.models_dir + 'checkpoint.pt'):
             # save torchscript
+            print('Creating new models... ', end='')
             self.nnet.save_model(self.uploader.models_dir)
             self.nnet.save_model(self.uploader.models_dir, "best_checkpoint")
+            print('Done!')
         
         start_iter = self.uploader.read_iteration()
 
@@ -138,12 +149,18 @@ class Learner():
                 futures = [executor.submit(self.self_play, 1 if i % 2 else -1, libtorch, k == 1) for k in range(1, self.num_eps + 1)]
                 for k, f in enumerate(futures):
                     examples = f.result()
+
+                    game = [e[1] for e in examples[8::8]]
+                    self.uploader.save_game(i, k, game)
+                    examples = examples[:-1]
+
                     itr_examples += examples
 
                     # decrease libtorch batch size
                     remain = min(len(futures) - (k + 1), self.num_train_threads)
                     libtorch.set_batch_size(max(remain * self.num_mcts_threads, 1))
                     print(f'EPS: {k+1} - EXAMPLES: {len(examples)} ({self.gomoku_gui.get_time()})')
+
 
             # release gpu memory
             del libtorch
@@ -231,11 +248,6 @@ class Learner():
             else:
                 prob = np.array(list(player.get_action_probs(gomoku, 0)))
 
-            if episode_step == 1 and self.random_start:
-                center = self.action_size // 2
-                prob[center] += self.center_policy
-                prob += .01
-
             # generate sample
             board = tuple_2d_to_numpy_2d(gomoku.get_board())
             last_action = gomoku.get_last_move()
@@ -245,11 +257,20 @@ class Learner():
             for b, p, a in sym:
                 train_examples.append([b, a, cur_player, p])
 
+            if episode_step == 1 and self.random_start:
+                if show:
+                    print('BEFORE ', end='')
+                    self.gomoku_gui.set_top_choices(prob)
+                    self.gomoku_gui.print_top_choices()
+                center = self.action_size // 2
+                prob[center] += self.center_policy
+                prob += .01
+
             # dirichlet noise
             legal_moves = list(gomoku.get_legal_moves())
             noise = 0.1 * np.random.dirichlet(self.dirichlet_alpha * np.ones(np.count_nonzero(legal_moves)))
 
-            prob = 0.9 * prob
+            prob = self.prob_multiplier * prob
             j = 0
             for i in range(len(prob)):
                 if legal_moves[i] == 1:
@@ -275,7 +296,7 @@ class Learner():
             ended, winner = gomoku.get_game_status()
             if ended == 1:
                 # b, last_action, cur_player, p, v
-                return [(x[0], x[1], x[2], x[3], x[2] * winner) for x in train_examples]
+                return [(x[0], x[1], x[2], x[3], x[2] * winner) for x in train_examples] + [(None, action, None, None, None)]
 
     def contest(self, network1, network2, num_contest):
         """compare new and old model
@@ -351,8 +372,8 @@ class Learner():
         last_action_board[last_action // self.n][last_action % self.n] = 1
         l = []
 
-        for i in range(1, 5):
-            for j in [True, False]:
+        for i in range(0, 4):
+            for j in [False, True]:
                 newB = np.rot90(board, i)
                 newPi = np.rot90(pi_board, i)
                 newAction = np.rot90(last_action_board, i)

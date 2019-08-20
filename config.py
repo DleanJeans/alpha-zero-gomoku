@@ -49,11 +49,13 @@ config = {
     'drive_dir': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
     'iteration_path': 'iteration.txt',
     'best_path': 'best.txt',
+    'games_path': 'games.txt',
     'upload_now': False,
 
     'show_ram': False,
     'random_start': False,
     'center_policy': 1.,
+    'prob_multiplier': 0.95,
 }
 
 config = DotDict(config)

@@ -41,7 +41,7 @@ class GomokuCMD():
 
     def reset_status(self):
         self.top_choices = {}
-        self.chosen = -1
+        self.chosen_action = -1
         self.last_time = None
 
         has_board = hasattr(self, 'board')
@@ -94,8 +94,8 @@ class GomokuCMD():
         while self.is_running:
             if self.is_human:
                 alphanum = input('Move: ')
-                self.human_move = self.alphanum_to_number(alphanum)
                 try:
+                    self.human_move = self.alphanum_to_number(alphanum)
                     self.execute_move(self.human_color, self.human_move)
                 except Exception as e:
                     print(e)
@@ -106,7 +106,7 @@ class GomokuCMD():
         y = ascii_uppercase.find(alphanum[:1].upper())
         x = int(alphanum[1:])
 
-        assert 0 <= x < self.n and 0 <= y < self.n, 'Move Out of Board'
+        assert 0 <= x < self.n and 0 <= y < self.n, f'Move {alphanum} ({x}, {y}) not on board!'
         return y * self.n + x
     
     def xy_to_number(self, x, y):
@@ -139,13 +139,16 @@ class GomokuCMD():
         
         print('')
 
-    def set_top_choices(self, probs, action):
+    def set_top_choices(self, probs, chosen_action=None):
         top_actions = np.argsort(-probs)[:3]
-        if action not in top_actions:
-            top_actions = np.concatenate((top_actions, [action]))
+
+        if chosen_action and chosen_action not in top_actions:
+            top_actions = np.concatenate((top_actions, [chosen_action]))
+            self.chosen_action = np.where(top_actions==chosen_action)[0][0]
+        else:
+            self.chosen_action = -1
 
         self.top_choices = { action:probs[action] for action in top_actions }
-        self.chosen = np.where(top_actions==action)[0][0]
 
     def print_top_choices(self):
         if not self.top_choices: return
@@ -158,7 +161,7 @@ class GomokuCMD():
             choice = f'{alphanum}={policy:.2f}%'
             prefix = f'#{i+1}' if i < 3 else 'Chosen'
             choice = f'{prefix} {choice}'
-            if i == self.chosen:
+            if i == self.chosen_action:
                 choice = colored(choice, 'yellow')
 
             output += choice
@@ -211,10 +214,29 @@ class GomokuCMD():
         }[piece]
 
         color = colors[piece]
-        on_color = None
 
         if (x, y) == self.last_move:
             piece = piece.upper()
             color = 'yellow'
-        piece = colored(piece, color, on_color)
+        
+        if color:
+            piece = colored(piece, color)
         return piece
+
+    def print_game(self, game, i=-1, eps=-1):
+        _show_ram = self.show_ram
+        self.show_ram = False
+
+        self.reset_status()
+        if ':' in game:
+            game = game.split(':')[1].strip()
+        
+        color = 1
+        for move in game.split():
+            move = self.alphanum_to_number(move)
+            if i > 0: print(f'ITER {i} - ', end='')
+            if eps: print(f'EPS {eps} - ', end='')
+            self.execute_move(color, move)
+            color *= -1
+        
+        self.show_ram = _show_ram
