@@ -86,6 +86,11 @@ class Uploader:
             os.makedirs(checkpoints_folder)
         shutil.copyfile('models/best_checkpoint.pt', f'{checkpoints_folder}{i}.pt')
     
+    def reset_game_history(self):
+        history_on_drive = self.drive_dir + 'games.txt'
+        if os.path.exists(history_on_drive):
+            shutil.copy2(history_on_drive, self.models_dir)
+
     def save_game(self, i, eps, moves):
         eps += 1
         with open(self.games_path, 'a+') as file:

@@ -127,6 +127,7 @@ class Learner():
             print('Done!')
         
         start_iter = self.uploader.read_iteration()
+        self.uploader.reset_game_history()
 
         for i in range(start_iter, self.num_iters + 1):
             # self play in parallel

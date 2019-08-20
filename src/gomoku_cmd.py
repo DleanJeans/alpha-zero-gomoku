@@ -142,8 +142,10 @@ class GomokuCMD():
     def set_top_choices(self, probs, chosen_action=None):
         top_actions = np.argsort(-probs)[:3]
 
-        if chosen_action and chosen_action not in top_actions:
+        if chosen_action not in top_actions:
             top_actions = np.concatenate((top_actions, [chosen_action]))
+        
+        if chosen_action:
             self.chosen_action = np.where(top_actions==chosen_action)[0][0]
         else:
             self.chosen_action = -1
