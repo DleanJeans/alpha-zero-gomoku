@@ -230,8 +230,6 @@ class GomokuCMD():
         self.show_ram = False
 
         self.reset_status()
-        if ':' in game:
-            game = game.split(':')[1].strip()
         
         color = 1
         for move in game.split():

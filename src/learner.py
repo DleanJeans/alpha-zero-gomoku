@@ -85,8 +85,8 @@ class Learner():
         t = Thread(target=self.gomoku_gui.loop)
         t.start()
     
-    def print_game(self, i, eps):
-        game = self.uploader.read_game(i, eps)
+    def print_game(self, i, eps, contest=False):
+        game = self.uploader.read_game(i, eps, contest)
         if game:
             self.gomoku_gui.print_game(game, i, eps)
     
@@ -127,7 +127,9 @@ class Learner():
             print('Done!')
         
         start_iter = self.uploader.read_iteration()
-        self.uploader.reset_game_history()
+        
+        if not self.uploader.upload_now:
+            self.uploader.reset_game_history()
 
         for i in range(start_iter, self.num_iters + 1):
             # self play in parallel
@@ -152,7 +154,7 @@ class Learner():
                     examples = f.result()
 
                     game = [e[1] for e in examples[8::8]]
-                    self.uploader.save_game(i, k, game)
+                    self.uploader.save_game(i, k+1, game)
                     examples = examples[:-1]
 
                     itr_examples += examples
@@ -160,7 +162,7 @@ class Learner():
                     # decrease libtorch batch size
                     remain = min(len(futures) - (k + 1), self.num_train_threads)
                     libtorch.set_batch_size(max(remain * self.num_mcts_threads, 1))
-                    print(f'EPS: {k+1} - EXAMPLES: {len(examples)} ({self.gomoku_gui.get_time()})')
+                    print(f'EPS: {k+1} - MOVES: {len(game)} - EXAMPLES: {len(examples)} ({self.gomoku_gui.get_time()})')
 
 
             # release gpu memory
@@ -194,7 +196,7 @@ class Learner():
                 libtorch_best = NeuralNetwork(self.uploader.models_dir + 'best_checkpoint.pt',
                                               self.libtorch_use_gpu, self.num_mcts_threads * self.num_train_threads * self.contest_mcts // 2)
 
-                one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest)
+                one_won, two_won, draws = self.contest(libtorch_current, libtorch_best, self.num_contest, i)
                 text = f'\nNEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws}\n'
 
                 if one_won + two_won > 0 and float(one_won) / (one_won + two_won) >= self.update_threshold:
@@ -299,7 +301,7 @@ class Learner():
                 # b, last_action, cur_player, p, v
                 return [(x[0], x[1], x[2], x[3], x[2] * winner) for x in train_examples] + [(None, action, None, None, None)]
 
-    def contest(self, network1, network2, num_contest):
+    def contest(self, network1, network2, num_contest, i=0):
         """compare new and old model
            Args: player1, player2 is neural network
            Return: one_won, two_won, draws
@@ -310,7 +312,9 @@ class Learner():
             futures = [executor.submit(\
                 self._contest, network1, network2, 1 if k <= num_contest // 2 else -1, k == 1) for k in range(1, num_contest + 1)]
             for k, f in enumerate(futures):
-                winner = f.result()
+                winner, game = f.result()
+                self.uploader.save_game(i, k+1, game, contest=True)
+
                 print(f'GAME {k + 1}: ', end='')
                 if winner == 1:
                     one_won += 1
@@ -321,7 +325,7 @@ class Learner():
                 else:
                     draws += 1
                     print('DRAW', end='')
-                print(f' - NEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws}')
+                print(f' - NEW/BEST WINS : {one_won} / {two_won} | DRAWS : {draws} ({self.gomoku_gui.get_time()})')
 
         return one_won, two_won, draws
 
@@ -338,6 +342,8 @@ class Learner():
         gomoku = Gomoku(self.n, self.n_in_row, first_player)
         if show:
             self.gomoku_gui.reset_status()
+        
+        game = []
 
         # play
         while True:
@@ -351,11 +357,13 @@ class Learner():
             gomoku.execute_move(best_move)
             if show:
                 self.gomoku_gui.execute_move(player_index, best_move)
+            
+            game.append(best_move)
 
             # check game status
             ended, winner = gomoku.get_game_status()
             if ended == 1:
-                return winner
+                return winner, game
 
             # update search tree
             player1.update_with_move(best_move)
