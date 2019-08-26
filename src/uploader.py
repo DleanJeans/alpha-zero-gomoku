@@ -105,22 +105,19 @@ class Uploader:
     
     def read_game(self, i, eps, contest=False):
         iter_text = f'ITER :: {i}'
-        eps_text = f'EPS {eps}:'
+        eps_text = f'EPS {eps} - '
 
         file_path = self.contest_games_path if contest else self.games_path
         
         with open(file_path, 'r') as file:
             text = file.read()
-            if '-' in text:
-                text = text.split('-')[1].strip()
         
-        try:
-            iter_pos = text.index(iter_text)
-            start_pos = text.index(eps_text, iter_pos)
-            end_pos = text.index('\n', start_pos)
-        except:
-            print(f'Game of ITER {i} EPS {eps} not found!')
-            return ''
-        
+        iter_pos = text.index(iter_text)
+        start_pos = text.index(eps_text, iter_pos)
+        end_pos = text.index('\n', start_pos)
+
         text = text[start_pos:end_pos]
+        if '-' in text:
+            text = text.split('-')[1]
+        
         return text
