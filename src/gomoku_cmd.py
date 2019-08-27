@@ -76,7 +76,7 @@ class GomokuCMD():
         if piece != 0:
             alphanum = self.number_to_alphanum(move)
             piece = self._get_piece(x, y)
-            assert self.board[x][y] == 0, f'{alphanum} is not empty: {piece}'
+            raise ValueError(f'{alphanum} is not empty: {piece}')
 
         self.board[x][y] = color
         self.number[x][y] = self.k
