@@ -310,7 +310,7 @@ class Learner():
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_train_threads) as executor:
             futures = [executor.submit(\
-                self._contest, network1, network2, 1 if k <= num_contest // 2 else -1, k == 1) for k in range(1, num_contest + 1)]
+                self._contest, network1, network2, -1 if k <= num_contest // 2 else 1, k == 1) for k in range(1, num_contest + 1)]
             for k, f in enumerate(futures):
                 winner, game = f.result()
                 self.uploader.save_game(i, k+1, game, contest=True)
