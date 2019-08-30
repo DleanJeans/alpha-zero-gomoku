@@ -202,6 +202,7 @@ class Learner():
                 if one_won + two_won > 0 and float(one_won) / (one_won + two_won) >= self.update_threshold:
                     text += 'ACCEPTING NEW MODEL'
                     self.nnet.save_model(self.uploader.models_dir, "best_checkpoint")
+                    self.uploader.upload_best_model(i)
                 else:
                     text += 'REJECTING NEW MODEL'
                 
@@ -215,7 +216,6 @@ class Learner():
                 del libtorch_current
                 del libtorch_best
                 
-                self.uploader.upload_best_model(i)
                 self.gomoku_gui.contest = False
 
     def self_play(self, first_color, libtorch, show):
