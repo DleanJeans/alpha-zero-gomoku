@@ -53,9 +53,7 @@ config = {
     'upload_now': False,
 
     'show_ram': False,
-    'random_start': False,
-    'center_policy': 1.,
-    'prob_multiplier': 0.95,
+    'prob_multiplier': 0.9,
 }
 
 config = DotDict(config)

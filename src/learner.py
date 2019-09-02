@@ -260,15 +260,6 @@ class Learner():
             for b, p, a in sym:
                 train_examples.append([b, a, cur_player, p])
 
-            if episode_step == 1 and self.random_start:
-                if show:
-                    print('BEFORE ', end='')
-                    self.gomoku_gui.set_top_choices(prob)
-                    self.gomoku_gui.print_top_choices()
-                center = self.action_size // 2
-                prob[center] += self.center_policy
-                prob += .01
-
             # dirichlet noise
             legal_moves = list(gomoku.get_legal_moves())
             noise = 0.1 * np.random.dirichlet(self.dirichlet_alpha * np.ones(np.count_nonzero(legal_moves)))
