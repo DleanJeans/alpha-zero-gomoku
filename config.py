@@ -30,6 +30,7 @@ config = {
     'num_layers' : 4,                           # residual layer number
     'epochs': 1.5,                              # train epochs
     'batch_size': 512,                          # batch size
+    'use_radam': False,
 
     # train
     'num_iters': 10000,                         # train iterations
@@ -42,18 +43,18 @@ config = {
     'num_contest': 10,                          # new/old model compare times
     'check_freq': 20,                           # test model frequency
     'examples_buffer_len': (4, 20, 5, 2),       # (min, max, start_change_iter, n_iter_to_change)
+    'prob_multiplier': 0.9,
 
     # test
     'human_color': 1,                            # human player's color
+    'show_ram': False,
 
+    # checkpoint uploading
     'drive_dir': 'drive/My Drive/Colab Notebooks/alpha-zero-caro/',
     'iteration_path': 'iteration.txt',
     'best_path': 'best.txt',
     'games_path': 'games.txt',
     'upload_now': False,
-
-    'show_ram': False,
-    'prob_multiplier': 0.9,
 }
 
 config = DotDict(config)

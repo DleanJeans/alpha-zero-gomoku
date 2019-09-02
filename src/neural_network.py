@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 import numpy as np
 
+from radam import RAdam
 
 def conv3x3(in_channels, out_channels, stride=1):
     # 3x3 convolution
@@ -131,7 +132,7 @@ class NeuralNetWorkWrapper():
     """train and predict
     """
 
-    def __init__(self, lr, l2, num_layers, num_channels, n, action_size, train_use_gpu=True, libtorch_use_gpu=True):
+    def __init__(self, lr, l2, num_layers, num_channels, n, action_size, train_use_gpu=True, libtorch_use_gpu=True, use_radam=False):
         """ init
         """
         self.lr = lr
@@ -146,7 +147,8 @@ class NeuralNetWorkWrapper():
         if self.train_use_gpu:
             self.neural_network.cuda()
 
-        self.optim = Adam(self.neural_network.parameters(), lr=self.lr, weight_decay=self.l2)
+        adam = RAdam if use_radam else Adam
+        self.optim = adam(self.neural_network.parameters(), lr=self.lr, weight_decay=self.l2)
         self.alpha_loss = AlphaLoss()
 
     def train(self, example_buffer, batch_size, epochs):

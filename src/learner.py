@@ -62,7 +62,8 @@ class Learner():
         self.batch_size = config.batch_size
         self.epochs = config.epochs
         self.nnet = NeuralNetWorkWrapper(config.lr, config.l2, config.num_layers,
-                                         config.num_channels, config.n, self.action_size, config.train_use_gpu, self.libtorch_use_gpu)
+                                         config.num_channels, config.n, self.action_size, 
+                                         config.train_use_gpu, self.libtorch_use_gpu, config.use_radam)
 
         self.uploader = Uploader(config)
         self.uploader.get_time = self.gomoku_gui.get_time
