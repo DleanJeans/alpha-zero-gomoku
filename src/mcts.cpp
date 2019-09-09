@@ -148,21 +148,24 @@ double TreeNode::get_value(double c_puct, double c_virtual_loss,
 // MCTS
 MCTS::MCTS(NeuralNetwork *neural_network, unsigned int thread_num, double c_puct,
            unsigned int num_mcts_sims, double c_virtual_loss,
-           unsigned int action_size)
+           unsigned int action_size, bool loop_from_center=false)
     : neural_network(neural_network),
       thread_pool(new ThreadPool(thread_num)),
       c_puct(c_puct),
       num_mcts_sims(num_mcts_sims),
       c_virtual_loss(c_virtual_loss),
       action_size(action_size),
-      indices(create_indices()),
+      indices(create_indices(loop_from_center)),
       root(new TreeNode(nullptr, 1., action_size, &indices), MCTS::tree_deleter) {}
 
-std::vector<unsigned int> MCTS::create_indices() {
+std::vector<unsigned int> MCTS::create_indices(bool loop_from_center) {
   std::vector<unsigned int> indices;
 
   for (unsigned int i = 0; i < action_size; i++)
     indices.push_back(i);
+  
+  if (!loop_from_center)
+    return indices;
   
   int side = int(sqrt(action_size));
   int center = int(side / 2);

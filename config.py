@@ -16,6 +16,7 @@ config = {
     'c_puct': 5,                                # puct coeff
     'c_virtual_loss': 3,                        # virtual loss coeff
     'contest_mcts': 4,
+    'loop_from_center': False,
 
     # neural_network
     'train_use_gpu' : True,                     # train neural network using cuda

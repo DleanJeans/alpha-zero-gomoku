@@ -48,14 +48,14 @@ class MCTS {
  public:
   MCTS(NeuralNetwork *neural_network, unsigned int thread_num, double c_puct,
        unsigned int num_mcts_sims, double c_virtual_loss,
-       unsigned int action_size);
+       unsigned int action_size, bool loop_from_center);
   std::vector<double> get_action_probs(Gomoku *gomoku, double temp = 1e-3);
   void update_with_move(int last_move);
 
  private:
   void simulate(std::shared_ptr<Gomoku> game);
   static void tree_deleter(TreeNode *t);
-  std::vector<unsigned int> create_indices();
+  std::vector<unsigned int> create_indices(bool loop_from_center);
 
   // variables
   std::unique_ptr<TreeNode, decltype(MCTS::tree_deleter) *> root;

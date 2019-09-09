@@ -82,6 +82,8 @@ class Learner():
 
         self.prob_multiplier = config.prob_multiplier
 
+        self.loop_from_center = config.loop_from_center
+
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
         t.start()
@@ -230,9 +232,9 @@ class Learner():
         train_examples = []
 
         player1 = MCTS(libtorch, self.num_mcts_threads, self.c_puct,
-                    self.num_mcts_sims, self.c_virtual_loss, self.action_size)
+                    self.num_mcts_sims, self.c_virtual_loss, self.action_size, self.loop_from_center)
         player2 = MCTS(libtorch, self.num_mcts_threads, self.c_puct,
-            self.num_mcts_sims, self.c_virtual_loss, self.action_size)
+            self.num_mcts_sims, self.c_virtual_loss, self.action_size, self.loop_from_center)
         players = [player2, None, player1]
         player_index = 1
 
@@ -324,9 +326,9 @@ class Learner():
     def _contest(self, network1, network2, first_player, show):
         # create MCTS
         player1 = MCTS(network1, self.num_mcts_threads, self.c_puct,
-            self.num_mcts_sims, self.c_virtual_loss, self.action_size)
+            self.num_mcts_sims, self.c_virtual_loss, self.action_size, self.loop_from_center)
         player2 = MCTS(network2, self.num_mcts_threads, self.c_puct,
-                    self.num_mcts_sims, self.c_virtual_loss, self.action_size)
+                    self.num_mcts_sims, self.c_virtual_loss, self.action_size, self.loop_from_center)
 
         # prepare
         players = [player2, None, player1]
@@ -389,7 +391,7 @@ class Learner():
         # load best model
         libtorch_best = NeuralNetwork(self.uploader.models_dir + f'{checkpoint_name}.pt', self.libtorch_use_gpu, 12)
         mcts_best = MCTS(libtorch_best, self.num_mcts_threads * self.num_train_threads, \
-             self.c_puct, self.num_mcts_sims * self.contest_mcts, self.c_virtual_loss, self.action_size)
+             self.c_puct, self.num_mcts_sims * self.contest_mcts, self.c_virtual_loss, self.action_size, self.loop_from_center)
 
         if self.uploader.upload_now:
             self.uploader.request_upload()
