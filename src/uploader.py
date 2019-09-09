@@ -104,14 +104,17 @@ class Uploader:
                 file.write('\n')
     
     def read_game(self, i, eps, contest=False):
+        filepath = self.contest_games_path if contest else self.games_path
+        return Uploader.read_game_from_file(filepath, i, eps, contest)
+
+    @staticmethod
+    def read_game_from_file(filepath, i, eps, contest=False):
+        with open(filepath, 'r') as file:
+            text = file.read()
+
         iter_text = f'ITER :: {i}'
         eps_text = f'EPS {eps} - '
-
-        file_path = self.contest_games_path if contest else self.games_path
-        
-        with open(file_path, 'r') as file:
-            text = file.read()
-        
+    
         iter_pos = text.index(iter_text)
         start_pos = text.index(eps_text, iter_pos)
         end_pos = text.index('\n', start_pos)
