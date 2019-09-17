@@ -23,6 +23,10 @@ class Uploader:
         self.start_iter = 1
         self.num_eps = config.num_eps
     
+    def wait_for_upload_complete(self):
+        if self.upload_thread.is_alive():
+            self.upload_thread.join()
+    
     def request_upload(self, i = 0):
         if self.should_upload(i):
             self.start_upload_thread()
