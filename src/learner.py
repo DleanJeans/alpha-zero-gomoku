@@ -83,6 +83,7 @@ class Learner():
         self.prob_multiplier = config.prob_multiplier
 
         self.loop_from_center = config.loop_from_center
+        self.alternate_center_loop = config.alternate_center_loop
 
         # start gui
         t = Thread(target=self.gomoku_gui.loop)
@@ -149,6 +150,9 @@ class Learner():
             
             self.gomoku_gui.iteration = i
             print('ITER ::', i)
+
+            if self.alternate_center_loop:
+                self.loop_from_center = (i % 2 == 1)
 
             itr_examples = []
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_train_threads) as executor:
