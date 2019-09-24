@@ -224,8 +224,6 @@ class Learner():
                 del libtorch_best
                 
                 self.gomoku_gui.contest = False
-            
-            self.uploader.wait_for_upload_complete()
 
     def self_play(self, first_color, libtorch, show):
         """

@@ -4,6 +4,7 @@ import os
 from threading import Thread
 import time
 import datetime
+import subprocess
 
 class Uploader:
     def __init__(self, config):
@@ -54,7 +55,7 @@ class Uploader:
             if os.path.exists(file):
                 shutil.copy2(file, self.drive_dir)
 
-        shutil.make_archive('models', 'zip', 'models')
+        shutil.make_archive('models', 'zip', 'models/')
         
         print(f'Archive created!', self.get_time_log(), '\n'); sys.stdout.flush()
         self.start_time = time.time()
