@@ -29,13 +29,13 @@ class Uploader:
             self.upload_thread.join()
     
     def request_upload(self, i = 0):
-        if self.should_upload(i):
-            self.start_upload_thread()
-        elif self.upload_thread.is_alive():
+        if self.upload_thread.is_alive():
             print('Still uploading... Aborting this upload request...\n')
+        elif self.should_upload(i):
+            self.start_upload_thread()
 
     def should_upload(self, i):
-        return not self.upload_thread.is_alive() and self.upload_now or i > self.start_iter
+        return self.upload_now or i > self.start_iter
 
     def start_upload_thread(self):
         self.upload_thread = Thread(target=self.upload_models)
