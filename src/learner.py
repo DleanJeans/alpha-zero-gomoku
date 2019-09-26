@@ -191,8 +191,11 @@ class Learner():
             print(f'Training {int(epochs)} epochs...')
 
             self.nnet.train(train_data, self.batch_size, int(epochs))
+
+            print('Saving model... ', end='')
             self.nnet.save_model(self.uploader.models_dir)
             self.save_samples(self.uploader.models_dir)
+            print('Done!')
 
             # compare performance
             if i % self.check_freq == 0:

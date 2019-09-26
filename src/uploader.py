@@ -1,5 +1,4 @@
 import shutil
-import sys
 import os
 from threading import Thread
 import time
@@ -32,6 +31,7 @@ class Uploader:
         if self.upload_thread.is_alive():
             print('Still uploading... Aborting this upload request...\n')
         elif self.should_upload(i):
+            print(f'Uploading model to Drive... {self.get_time()}\n')
             self.start_upload_thread()
 
     def should_upload(self, i):
@@ -45,7 +45,6 @@ class Uploader:
         return f'At {self.get_time()} | Taken {self.get_time_elapsed()}s'
         
     def upload_models(self):
-        print(f'Uploading models to Drive... {self.get_time()}\n')
         self.start_time = time.time()
 
         if not os.path.exists(self.drive_dir):
@@ -57,12 +56,12 @@ class Uploader:
 
         shutil.make_archive('models', 'zip', 'models/')
         
-        print(f'Archive created!', self.get_time_log(), '\n'); sys.stdout.flush()
+        print(f'Archive created!', self.get_time_log(), '\n')
         self.start_time = time.time()
 
         shutil.copy2('models.zip', self.drive_dir)
 
-        print(f'Models uploaded to Drive!', self.get_time_log(), '\n'); sys.stdout.flush()
+        print(f'Model uploaded to Drive!', self.get_time_log(), '\n')
     
     def get_time_elapsed(self):
         now = time.time()
