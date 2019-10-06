@@ -46,6 +46,7 @@ config = {
     'check_freq': 20,                           # test model frequency
     'examples_buffer_len': (4, 20, 5, 2),       # (min, max, start_change_iter, n_iter_to_change)
     'prob_multiplier': 0.9,
+    'second_prob_multiplier': 0.9,
 
     # test
     'human_color': 1,                            # human player's color

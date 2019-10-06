@@ -81,6 +81,7 @@ class Learner():
         self.center_policy = config.center_policy
 
         self.prob_multiplier = config.prob_multiplier
+        self.second_prob_multiplier = config.second_prob_multiplier
 
         self.loop_from_center = config.loop_from_center
         self.alternate_center_loop = config.alternate_center_loop
@@ -274,7 +275,8 @@ class Learner():
             legal_moves = list(gomoku.get_legal_moves())
             noise = 0.1 * np.random.dirichlet(self.dirichlet_alpha * np.ones(np.count_nonzero(legal_moves)))
 
-            prob = self.prob_multiplier * prob
+            prob_multiplier = self.prob_multiplier if episode_step % 2 == 1 else self.second_prob_multiplier
+            prob *= prob_multiplier
             j = 0
             for i in range(len(prob)):
                 if legal_moves[i] == 1:
